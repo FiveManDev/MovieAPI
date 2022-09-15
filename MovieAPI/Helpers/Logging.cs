@@ -1,32 +1,32 @@
-﻿namespace MovieAPI.Services
+﻿namespace MovieAPI.Helpers
 {
     public static partial class Logging
     {
-        public static string StartMethod(this String currentMethod)
+        public static string StartMethod(this string currentMethod)
         {
             return $"[{currentMethod}] Start";
         }
-        public static string EndMethod(this String currentMethod)
+        public static string EndMethod(this string currentMethod)
         {
             return $"[{currentMethod}] End";
         }
-        public static string ErrorMethod(this String currentMethod, String Mes)
+        public static string ErrorMethod(this string currentMethod, string Mes)
         {
             return $"[{currentMethod}]  Message: {Mes}";
         }
-        public static string GetData(this String currentMethod, String Mes)
+        public static string GetData(this string currentMethod, string Mes)
         {
             return $"[{currentMethod}]  Message: {Mes}";
         }
-        public static string PostData(this String currentMethod, String Mes)
+        public static string PostData(this string currentMethod, string Mes)
         {
             return $"[{currentMethod}]  Message: {Mes}";
         }
-        public static string PutData(this String currentMethod, String Mes)
+        public static string PutData(this string currentMethod, string Mes)
         {
             return $"[{currentMethod}]  Message: {Mes}";
         }
-        public static string DeleteData(this String currentMethod, String Mes)
+        public static string DeleteData(this string currentMethod, string Mes)
         {
             return $"[{currentMethod}]  Message: {Mes}";
         }
