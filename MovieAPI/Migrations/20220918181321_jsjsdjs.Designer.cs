@@ -12,8 +12,8 @@ using MovieAPI.Data.DbConfig;
 namespace MovieAPI.Migrations
 {
     [DbContext(typeof(MovieAPIDbContext))]
-    [Migration("20220915190018_DbInit")]
-    partial class DbInit
+    [Migration("20220918181321_jsjsdjs")]
+    partial class jsjsdjs
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -82,6 +82,9 @@ namespace MovieAPI.Migrations
                     b.Property<string>("Age")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("ClassID")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Country")
                         .HasColumnType("nvarchar(max)");
 
@@ -94,11 +97,17 @@ namespace MovieAPI.Migrations
                     b.Property<string>("Director")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("GenreID")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Language")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MovieName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("MovieTypeID")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("MovieURL")
                         .HasColumnType("nvarchar(max)");
@@ -122,6 +131,15 @@ namespace MovieAPI.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("MovieID");
+
+                    b.HasIndex("ClassID")
+                        .IsUnique();
+
+                    b.HasIndex("GenreID")
+                        .IsUnique();
+
+                    b.HasIndex("MovieTypeID")
+                        .IsUnique();
 
                     b.HasIndex("UserID");
 
@@ -153,6 +171,9 @@ namespace MovieAPI.Migrations
                     b.Property<string>("Avatar")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("ClassID")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("EMail")
                         .HasColumnType("nvarchar(max)");
 
@@ -162,7 +183,13 @@ namespace MovieAPI.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("UserID")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("ProfileID");
+
+                    b.HasIndex("ClassID")
+                        .IsUnique();
 
                     b.ToTable("Profile", (string)null);
                 });
@@ -174,14 +201,14 @@ namespace MovieAPI.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWID()");
 
-                    b.Property<string>("Content")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<Guid?>("MovieInformationMovieID")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
+
+                    b.Property<string>("ReviewContent")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("ReviewTime")
                         .HasColumnType("datetime2");
@@ -208,6 +235,9 @@ namespace MovieAPI.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWID()");
 
+                    b.Property<string>("AccessToken")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("ExpiredAt")
                         .HasColumnType("datetime2");
 
@@ -220,13 +250,16 @@ namespace MovieAPI.Migrations
                     b.Property<DateTime?>("IssuedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("JwtID")
+                    b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TokenString")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("UserID")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("TokenID");
+
+                    b.HasIndex("UserID")
+                        .IsUnique();
 
                     b.ToTable("Token", (string)null);
                 });
@@ -238,155 +271,159 @@ namespace MovieAPI.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWID()");
 
+                    b.Property<Guid>("AuthorizationID")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Password")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserID");
 
+                    b.HasIndex("AuthorizationID")
+                        .IsUnique();
+
                     b.ToTable("User", (string)null);
-                });
-
-            modelBuilder.Entity("MovieAPI.Data.Authorization", b =>
-                {
-                    b.HasOne("MovieAPI.Data.User", "Users")
-                        .WithOne("Authorization")
-                        .HasForeignKey("MovieAPI.Data.Authorization", "AuthorizationID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("PK_User_One_To_One_Authorization");
-
-                    b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("MovieAPI.Data.Classification", b =>
-                {
-                    b.HasOne("MovieAPI.Data.Profile", "Profile")
-                        .WithOne("Classification")
-                        .HasForeignKey("MovieAPI.Data.Classification", "ClassID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("PK_Profile_One_To_One_Classification");
-
-                    b.Navigation("Profile");
-                });
-
-            modelBuilder.Entity("MovieAPI.Data.Genre", b =>
-                {
-                    b.HasOne("MovieAPI.Data.MovieInformation", "MovieInformation")
-                        .WithOne("Genre")
-                        .HasForeignKey("MovieAPI.Data.Genre", "GenreID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("PK_MovieInformation_One_To_One_Genre");
-
-                    b.Navigation("MovieInformation");
                 });
 
             modelBuilder.Entity("MovieAPI.Data.MovieInformation", b =>
                 {
                     b.HasOne("MovieAPI.Data.Classification", "Classification")
                         .WithOne("MovieInformation")
-                        .HasForeignKey("MovieAPI.Data.MovieInformation", "MovieID")
+                        .HasForeignKey("MovieAPI.Data.MovieInformation", "ClassID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("PK_MovieInformation_One_To_One_Classification");
 
-                    b.HasOne("MovieAPI.Data.User", "User")
-                        .WithMany("MovieInformations")
-                        .HasForeignKey("UserID")
-                        .HasConstraintName("PK_User_One_To_Many_MovieInformation");
+                    b.HasOne("MovieAPI.Data.Genre", "Genre")
+                        .WithOne("MovieInformation")
+                        .HasForeignKey("MovieAPI.Data.MovieInformation", "GenreID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("PK_MovieInformation_One_To_One_Genre");
 
-                    b.Navigation("Classification");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("MovieAPI.Data.MovieType", b =>
-                {
-                    b.HasOne("MovieAPI.Data.MovieInformation", "MovieInformation")
-                        .WithOne("MovieType")
-                        .HasForeignKey("MovieAPI.Data.MovieType", "MovieTypeID")
+                    b.HasOne("MovieAPI.Data.MovieType", "MovieType")
+                        .WithOne("MovieInformation")
+                        .HasForeignKey("MovieAPI.Data.MovieInformation", "MovieTypeID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("PK_MovieInformation_One_To_One_MovieType");
 
-                    b.Navigation("MovieInformation");
+                    b.HasOne("MovieAPI.Data.User", "User")
+                        .WithMany("MovieInformations")
+                        .HasForeignKey("UserID");
+
+                    b.Navigation("Classification");
+
+                    b.Navigation("Genre");
+
+                    b.Navigation("MovieType");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MovieAPI.Data.Profile", b =>
+                {
+                    b.HasOne("MovieAPI.Data.Classification", "Classification")
+                        .WithOne("Profile")
+                        .HasForeignKey("MovieAPI.Data.Profile", "ClassID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("PK_Profile_One_To_One_Classification");
+
+                    b.Navigation("Classification");
                 });
 
             modelBuilder.Entity("MovieAPI.Data.Review", b =>
                 {
                     b.HasOne("MovieAPI.Data.MovieInformation", "MovieInformation")
                         .WithMany("Reviews")
-                        .HasForeignKey("MovieInformationMovieID")
-                        .HasConstraintName("PK_MovieInformation_One_To_Many_Review");
+                        .HasForeignKey("MovieInformationMovieID");
 
                     b.HasOne("MovieAPI.Data.User", "User")
                         .WithMany("Reviews")
-                        .HasForeignKey("UserID")
-                        .HasConstraintName("PK_User_One_To_Many_Review");
+                        .HasForeignKey("UserID");
 
                     b.Navigation("MovieInformation");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("MovieAPI.Data.User", b =>
-                {
-                    b.HasOne("MovieAPI.Data.Profile", "Profile")
-                        .WithOne("User")
-                        .HasForeignKey("MovieAPI.Data.User", "UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("PK_User_One_To_One_Profile");
-
-                    b.HasOne("MovieAPI.Data.Token", "Token")
-                        .WithOne("User")
-                        .HasForeignKey("MovieAPI.Data.User", "UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("PK_User_One_To_One_Token");
-
-                    b.Navigation("Profile");
-
-                    b.Navigation("Token");
-                });
-
-            modelBuilder.Entity("MovieAPI.Data.Classification", b =>
-                {
-                    b.Navigation("MovieInformation");
-                });
-
-            modelBuilder.Entity("MovieAPI.Data.MovieInformation", b =>
-                {
-                    b.Navigation("Genre");
-
-                    b.Navigation("MovieType");
-
-                    b.Navigation("Reviews");
-                });
-
-            modelBuilder.Entity("MovieAPI.Data.Profile", b =>
-                {
-                    b.Navigation("Classification");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("MovieAPI.Data.Token", b =>
                 {
+                    b.HasOne("MovieAPI.Data.User", "User")
+                        .WithOne("Token")
+                        .HasForeignKey("MovieAPI.Data.Token", "UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("MovieAPI.Data.User", b =>
                 {
+                    b.HasOne("MovieAPI.Data.Authorization", "Authorization")
+                        .WithOne("User")
+                        .HasForeignKey("MovieAPI.Data.User", "AuthorizationID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("PK_User_One_To_One_Authorization");
+
+                    b.HasOne("MovieAPI.Data.Profile", "Profile")
+                        .WithOne("User")
+                        .HasForeignKey("MovieAPI.Data.User", "UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("PK_Profile_One_To_One_User");
+
                     b.Navigation("Authorization");
 
+                    b.Navigation("Profile");
+                });
+
+            modelBuilder.Entity("MovieAPI.Data.Authorization", b =>
+                {
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MovieAPI.Data.Classification", b =>
+                {
+                    b.Navigation("MovieInformation");
+
+                    b.Navigation("Profile");
+                });
+
+            modelBuilder.Entity("MovieAPI.Data.Genre", b =>
+                {
+                    b.Navigation("MovieInformation");
+                });
+
+            modelBuilder.Entity("MovieAPI.Data.MovieInformation", b =>
+                {
+                    b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("MovieAPI.Data.MovieType", b =>
+                {
+                    b.Navigation("MovieInformation");
+                });
+
+            modelBuilder.Entity("MovieAPI.Data.Profile", b =>
+                {
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("MovieAPI.Data.User", b =>
+                {
                     b.Navigation("MovieInformations");
 
                     b.Navigation("Reviews");
+
+                    b.Navigation("Token");
                 });
 #pragma warning restore 612, 618
         }

@@ -2,7 +2,7 @@
 {
     public class ApiResponse
     {
-        public object? StatusCode { get; set; }
+        public bool? IsSuccess { get; set; }
         public string? Message { get; set; }
         public object? Data { get; set; }
     }

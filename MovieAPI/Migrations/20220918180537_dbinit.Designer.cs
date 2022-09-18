@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MovieAPI.Data.DbConfig;
 
@@ -11,9 +12,10 @@ using MovieAPI.Data.DbConfig;
 namespace MovieAPI.Migrations
 {
     [DbContext(typeof(MovieAPIDbContext))]
-    partial class MovieAPIDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220918180537_dbinit")]
+    partial class dbinit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -199,6 +201,9 @@ namespace MovieAPI.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWID()");
 
+                    b.Property<Guid>("MovieID")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("MovieInformationMovieID")
                         .HasColumnType("uniqueidentifier");
 
@@ -214,7 +219,7 @@ namespace MovieAPI.Migrations
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("UserID")
+                    b.Property<Guid>("UserID")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("ReviewID");
@@ -344,7 +349,9 @@ namespace MovieAPI.Migrations
 
                     b.HasOne("MovieAPI.Data.User", "User")
                         .WithMany("Reviews")
-                        .HasForeignKey("UserID");
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("MovieInformation");
 

@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Principal;
 
 namespace MovieAPI.Data.DbConfig
 {
@@ -23,27 +23,13 @@ namespace MovieAPI.Data.DbConfig
             {
                 e.ToTable("User");
                 e.HasKey(user => user.UserID);
-                e.Property(user => user.UserID).HasDefaultValueSql("NEWID()");
-                e.Property(user => user.UserName);
-                e.Property(user => user.Password);
-                e.HasOne(user => user.Profile)
-                    .WithOne(p => p.User)
-                    .HasForeignKey<User>(user => user.UserID)
-                    .HasConstraintName("PK_User_One_To_One_Profile");
+                e.Property(user => user.UserID).HasDefaultValueSql("NEWID()").IsRequired();
+                e.Property(user => user.UserName).IsRequired();
+                e.Property(user => user.Password).IsRequired();
                 e.HasOne(user => user.Authorization)
-                    .WithOne(aut => aut.Users)
-                    .HasForeignKey<Authorization>(aut => aut.AuthorizationID)
-                    .HasConstraintName("PK_User_One_To_One_Authorization");
-                e.HasOne(user => user.Token)
-                    .WithOne(token => token.User)
-                    .HasForeignKey<User>(user => user.UserID)
-                    .HasConstraintName("PK_User_One_To_One_Token");
-                e.HasMany(user => user.MovieInformations)
-                    .WithOne(movie => movie.User)
-                    .HasConstraintName("PK_User_One_To_Many_MovieInformation");
-                e.HasMany(user => user.Reviews)
-                    .WithOne(r => r.User)
-                    .HasConstraintName("PK_User_One_To_Many_Review");
+                    .WithOne(auth => auth.User)
+                    .HasForeignKey<User>(user => user.AuthorizationID)
+                    .HasConstraintName("PK_User_One_To_One_Authorization"); ;
             });
             modelBuilder.Entity<Profile>(e =>
             {
@@ -54,9 +40,13 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(pro => pro.LastName);
                 e.Property(pro => pro.Avatar);
                 e.Property(pro => pro.EMail);
+                e.HasOne(pro => pro.User)
+                    .WithOne(user => user.Profile)
+                    .HasForeignKey<User>(pro => pro.UserID)
+                    .HasConstraintName("PK_Profile_One_To_One_User");
                 e.HasOne(pro => pro.Classification)
                     .WithOne(cl => cl.Profile)
-                    .HasForeignKey<Classification>(cl => cl.ClassID)
+                    .HasForeignKey<Profile>(pro => pro.ClassID)
                     .HasConstraintName("PK_Profile_One_To_One_Classification");
             });
             modelBuilder.Entity<Token>(e =>
@@ -64,12 +54,15 @@ namespace MovieAPI.Data.DbConfig
                 e.ToTable("Token");
                 e.HasKey(token => token.TokenID);
                 e.Property(token => token.TokenID).HasDefaultValueSql("NEWID()");
-                e.Property(token => token.TokenString);
-                e.Property(token => token.JwtID);
+                e.Property(token => token.AccessToken);
+                e.Property(token => token.RefreshToken);
                 e.Property(token => token.IsUsed);
                 e.Property(token => token.IsRevoked);
                 e.Property(token => token.IssuedAt);
                 e.Property(token => token.ExpiredAt);
+                e.HasOne(token => token.User)
+                .WithOne(user => user.Token)
+                .HasForeignKey<Token>(token => token.UserID);
             });
             modelBuilder.Entity<Authorization>(e =>
             {
@@ -106,18 +99,15 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(mi => mi.Quality);
                 e.HasOne(mi => mi.Classification)
                     .WithOne(cl => cl.MovieInformation)
-                    .HasForeignKey<MovieInformation>(mi => mi.MovieID)
+                    .HasForeignKey<MovieInformation>(mi => mi.ClassID)
                     .HasConstraintName("PK_MovieInformation_One_To_One_Classification");
-                e.HasMany(mi => mi.Reviews)
-                    .WithOne(r => r.MovieInformation)
-                    .HasConstraintName("PK_MovieInformation_One_To_Many_Review");
                 e.HasOne(mi => mi.Genre)
                     .WithOne(g => g.MovieInformation)
-                    .HasForeignKey<Genre>(g => g.GenreID)
+                    .HasForeignKey<MovieInformation>(mi => mi.GenreID)
                     .HasConstraintName("PK_MovieInformation_One_To_One_Genre");
                 e.HasOne(mi => mi.MovieType)
                     .WithOne(mt => mt.MovieInformation)
-                    .HasForeignKey<MovieType>(mt => mt.MovieTypeID)
+                    .HasForeignKey<MovieInformation>(mi => mi.MovieTypeID)
                     .HasConstraintName("PK_MovieInformation_One_To_One_MovieType");
             });
             modelBuilder.Entity<MovieType>(e =>
@@ -140,7 +130,7 @@ namespace MovieAPI.Data.DbConfig
                 e.HasKey(r => r.ReviewID);
                 e.Property(r => r.ReviewID).HasDefaultValueSql("NEWID()");
                 e.Property(r => r.Title);
-                e.Property(r => r.Content);
+                e.Property(r => r.ReviewContent);
                 e.Property(r => r.Rating);
                 e.Property(r => r.ReviewTime);
             });

@@ -5,6 +5,6 @@
         public Guid AuthorizationID { get; set; }
         public string? AuthorizationName { get; set; }
         //Relationship
-        public User? Users { get; set; }
+        public User? User { get; set; }
     }
 }
