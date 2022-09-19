@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MovieAPI.Migrations
 {
-    public partial class dbinit : Migration
+    public partial class AddDBInit : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -58,29 +58,6 @@ namespace MovieAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Profile",
-                columns: table => new
-                {
-                    ProfileID = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
-                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    EMail = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ClassID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Profile", x => x.ProfileID);
-                    table.ForeignKey(
-                        name: "PK_Profile_One_To_One_Classification",
-                        column: x => x.ClassID,
-                        principalTable: "Classification",
-                        principalColumn: "ClassID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "User",
                 columns: table => new
                 {
@@ -92,12 +69,6 @@ namespace MovieAPI.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_User", x => x.UserID);
-                    table.ForeignKey(
-                        name: "PK_Profile_One_To_One_User",
-                        column: x => x.UserID,
-                        principalTable: "Profile",
-                        principalColumn: "ProfileID",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "PK_User_One_To_One_Authorization",
                         column: x => x.AuthorizationID,
@@ -125,7 +96,7 @@ namespace MovieAPI.Migrations
                     MovieURL = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RunningTime = table.Column<float>(type: "real", nullable: false),
                     Quality = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ClassID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     MovieTypeID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     GenreID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
@@ -133,11 +104,6 @@ namespace MovieAPI.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MovieInformation", x => x.MovieID);
-                    table.ForeignKey(
-                        name: "FK_MovieInformation_User_UserID",
-                        column: x => x.UserID,
-                        principalTable: "User",
-                        principalColumn: "UserID");
                     table.ForeignKey(
                         name: "PK_MovieInformation_One_To_One_Classification",
                         column: x => x.ClassID,
@@ -155,6 +121,41 @@ namespace MovieAPI.Migrations
                         column: x => x.MovieTypeID,
                         principalTable: "MovieType",
                         principalColumn: "MovieTypeID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "PK_User_One_To_Many_MovieInformation",
+                        column: x => x.UserID,
+                        principalTable: "User",
+                        principalColumn: "UserID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Profile",
+                columns: table => new
+                {
+                    ProfileID = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EMail = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ClassID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Profile", x => x.ProfileID);
+                    table.ForeignKey(
+                        name: "PK_Profile_One_To_One_Classification",
+                        column: x => x.ClassID,
+                        principalTable: "Classification",
+                        principalColumn: "ClassID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "PK_Profile_One_To_One_User",
+                        column: x => x.UserID,
+                        principalTable: "User",
+                        principalColumn: "UserID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -192,23 +193,21 @@ namespace MovieAPI.Migrations
                     Rating = table.Column<int>(type: "int", nullable: false),
                     ReviewTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    MovieID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    MovieInformationMovieID = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    MovieID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Review", x => x.ReviewID);
                     table.ForeignKey(
-                        name: "FK_Review_MovieInformation_MovieInformationMovieID",
-                        column: x => x.MovieInformationMovieID,
+                        name: "PK_MovieInformation_One_To_Many_Review",
+                        column: x => x.MovieID,
                         principalTable: "MovieInformation",
                         principalColumn: "MovieID");
                     table.ForeignKey(
-                        name: "FK_Review_User_UserID",
+                        name: "PK_User_One_To_Many_Review",
                         column: x => x.UserID,
                         principalTable: "User",
-                        principalColumn: "UserID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "UserID");
                 });
 
             migrationBuilder.CreateIndex(
@@ -241,9 +240,15 @@ namespace MovieAPI.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Review_MovieInformationMovieID",
+                name: "IX_Profile_UserID",
+                table: "Profile",
+                column: "UserID",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Review_MovieID",
                 table: "Review",
-                column: "MovieInformationMovieID");
+                column: "MovieID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Review_UserID",
@@ -266,6 +271,9 @@ namespace MovieAPI.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Profile");
+
+            migrationBuilder.DropTable(
                 name: "Review");
 
             migrationBuilder.DropTable(
@@ -275,7 +283,7 @@ namespace MovieAPI.Migrations
                 name: "MovieInformation");
 
             migrationBuilder.DropTable(
-                name: "User");
+                name: "Classification");
 
             migrationBuilder.DropTable(
                 name: "Genre");
@@ -284,13 +292,10 @@ namespace MovieAPI.Migrations
                 name: "MovieType");
 
             migrationBuilder.DropTable(
-                name: "Profile");
+                name: "User");
 
             migrationBuilder.DropTable(
                 name: "Authorization");
-
-            migrationBuilder.DropTable(
-                name: "Classification");
         }
     }
 }

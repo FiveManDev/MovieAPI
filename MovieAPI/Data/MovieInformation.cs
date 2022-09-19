@@ -18,6 +18,7 @@
         public float RunningTime { get; set; }
         public string? Quality { get; set; }
         //Relationship
+        public Guid UserID { get; set; }
         public User? User { get; set; }
         public Guid ClassID { get; set; }
         public Classification? Classification { get; set; }

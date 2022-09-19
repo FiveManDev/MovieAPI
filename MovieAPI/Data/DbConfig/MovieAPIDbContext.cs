@@ -29,7 +29,7 @@ namespace MovieAPI.Data.DbConfig
                 e.HasOne(user => user.Authorization)
                     .WithOne(auth => auth.User)
                     .HasForeignKey<User>(user => user.AuthorizationID)
-                    .HasConstraintName("PK_User_One_To_One_Authorization"); ;
+                    .HasConstraintName("PK_User_One_To_One_Authorization");
             });
             modelBuilder.Entity<Profile>(e =>
             {
@@ -42,7 +42,7 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(pro => pro.EMail);
                 e.HasOne(pro => pro.User)
                     .WithOne(user => user.Profile)
-                    .HasForeignKey<User>(pro => pro.UserID)
+                    .HasForeignKey<Profile>(pro => pro.UserID)
                     .HasConstraintName("PK_Profile_One_To_One_User");
                 e.HasOne(pro => pro.Classification)
                     .WithOne(cl => cl.Profile)
@@ -97,6 +97,10 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(mi => mi.MovieURL);
                 e.Property(mi => mi.RunningTime);
                 e.Property(mi => mi.Quality);
+                e.HasOne(mi => mi.User)
+                .WithMany(user => user.MovieInformations)
+                .HasForeignKey(mi => mi.UserID)
+                .HasConstraintName("PK_User_One_To_Many_MovieInformation");
                 e.HasOne(mi => mi.Classification)
                     .WithOne(cl => cl.MovieInformation)
                     .HasForeignKey<MovieInformation>(mi => mi.ClassID)
@@ -133,6 +137,16 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(r => r.ReviewContent);
                 e.Property(r => r.Rating);
                 e.Property(r => r.ReviewTime);
+                e.HasOne(r => r.User)
+                .WithMany(user => user.Reviews)
+                .HasForeignKey(r => r.UserID)
+                .HasConstraintName("PK_User_One_To_Many_Review")
+                .OnDelete(DeleteBehavior.NoAction);
+                e.HasOne(r => r.MovieInformation)
+                .WithMany(movie => movie.Reviews)
+                .HasForeignKey(r => r.MovieID)
+                .HasConstraintName("PK_MovieInformation_One_To_Many_Review")
+                .OnDelete(DeleteBehavior.NoAction);
             });
         }
     }
