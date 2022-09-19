@@ -14,11 +14,19 @@
         {
             return $"[{currentMethod}]  Message: {Mes}";
         }
-        public static string GetData(this string currentMethod, string Mes)
+        public static string GetDataSuccess(this string currentMethod)
+        {
+            return $"[{currentMethod}]  Message: Get Information Success";
+        }
+        public static string GetDataError(this string currentMethod, string Mes)
         {
             return $"[{currentMethod}]  Message: {Mes}";
         }
-        public static string PostData(this string currentMethod, string Mes)
+        public static string PostDataSuccess(this string currentMethod)
+        {
+            return $"[{currentMethod}]  Message: Insert Success";
+        }
+        public static string PostDataError(this string currentMethod, string Mes)
         {
             return $"[{currentMethod}]  Message: {Mes}";
         }

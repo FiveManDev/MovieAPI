@@ -31,7 +31,7 @@ namespace MovieAPI.Services
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(nameof(user.UserID), user.UserID.ToString()),
-                    new Claim(nameof(user.Authorization.AuthorizationID), user.Authorization!.AuthorizationID.ToString())
+                    new Claim(nameof(user.AuthorizationID), user.AuthorizationID.ToString())
                 }),
                 Expires = expires,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretKeyBytes), SecurityAlgorithms.HmacSha256Signature)
@@ -49,8 +49,18 @@ namespace MovieAPI.Services
                 ExpiredAt = expires,
                 User = user
             };
-            context.Tokens?.Add(tokenData);
-            context.SaveChanges();
+            try
+            {
+                context.Tokens?.Add(tokenData);
+                context.SaveChanges();
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess());
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError(ex.ToString()));
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.EndMethod());
+            }
+            
             logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.EndMethod());
             return new TokenModel
             {
