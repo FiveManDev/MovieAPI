@@ -2,41 +2,37 @@
 {
     public static partial class Logging
     {
-        public static string StartMethod(this string currentMethod)
+        public static string GetDataSuccess(this string currentMethod,string TableName,int NumberOfRecord)
         {
-            return $"[{currentMethod}] Start";
+            return $"[{currentMethod}] Get information of {TableName} table successfully with {NumberOfRecord} result";
         }
-        public static string EndMethod(this string currentMethod)
+        public static string GetDataError(this string currentMethod, string TableName, string Mes)
         {
-            return $"[{currentMethod}] End";
+            return $"[{currentMethod}] Get Data From {TableName} Error: {Mes}";
         }
-        public static string ErrorMethod(this string currentMethod, string Mes)
+        public static string PostDataSuccess(this string currentMethod,string TableName)
         {
-            return $"[{currentMethod}]  Message: {Mes}";
+            return $"[{currentMethod}] Insert Data To {TableName} Success";
         }
-        public static string GetDataSuccess(this string currentMethod)
+        public static string PostDataError(this string currentMethod, string TableName, string Mes)
         {
-            return $"[{currentMethod}]  Message: Get Information Success";
+            return $"[{currentMethod}] Post Data To {TableName} Eror: {Mes}";
         }
-        public static string GetDataError(this string currentMethod, string Mes)
+        public static string PutDataSuccess(this string currentMethod, string TableName, int NumberOfRecord)
         {
-            return $"[{currentMethod}]  Message: {Mes}";
+            return $"[{currentMethod}] Update {NumberOfRecord} {TableName} successfully";
         }
-        public static string PostDataSuccess(this string currentMethod)
+        public static string PutDataError(this string currentMethod, string TableName, string Mes)
         {
-            return $"[{currentMethod}]  Message: Insert Success";
+            return $"[{currentMethod}] Put Data To {TableName} Error: {Mes}";
         }
-        public static string PostDataError(this string currentMethod, string Mes)
+        public static string DeleteDataSuccess(this string currentMethod,string TableName, int NumberOfRecord)
         {
-            return $"[{currentMethod}]  Message: {Mes}";
+            return $"[{currentMethod}] Successfully deleted {NumberOfRecord} records of table {TableName}";
         }
-        public static string PutData(this string currentMethod, string Mes)
+        public static string DeleteDataError(this string currentMethod, string TableName, string Mes)
         {
-            return $"[{currentMethod}]  Message: {Mes}";
-        }
-        public static string DeleteData(this string currentMethod, string Mes)
-        {
-            return $"[{currentMethod}]  Message: {Mes}";
+            return $"[{currentMethod}] Delete Data From {TableName} Error: {Mes}";
         }
     }
 }

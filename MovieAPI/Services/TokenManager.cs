@@ -22,7 +22,6 @@ namespace MovieAPI.Services
         }
         public TokenModel GenerateAccessToken(User user)
         {
-            logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.StartMethod());
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var secretKeyBytes = Encoding.UTF8.GetBytes(AppSettings.SecretKey!);
             var expires = DateTime.UtcNow.AddHours(1);
@@ -53,15 +52,12 @@ namespace MovieAPI.Services
             {
                 context.Tokens?.Add(tokenData);
                 context.SaveChanges();
-                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess());
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Token"));
             }
             catch(Exception ex)
             {
-                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError(ex.ToString()));
-                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.EndMethod());
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError(ex.ToString(),"Token"));
             }
-            
-            logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.EndMethod());
             return new TokenModel
             {
                 AccessToken = accessToken,
@@ -70,7 +66,6 @@ namespace MovieAPI.Services
         }
         public string DecodeToken(TokenModel tokenModel)
         {
-            logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.StartMethod());
             var accessToken = tokenModel.AccessToken!.Replace("Bearer ", "");
             var token = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
             var list = token.Claims.ToList();
@@ -78,7 +73,6 @@ namespace MovieAPI.Services
             {
                 Console.WriteLine(item);
             }
-            logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.EndMethod());
             return null;
         }
     }
