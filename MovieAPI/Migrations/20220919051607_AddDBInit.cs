@@ -70,11 +70,10 @@ namespace MovieAPI.Migrations
                 {
                     table.PrimaryKey("PK_User", x => x.UserID);
                     table.ForeignKey(
-                        name: "PK_User_One_To_One_Authorization",
+                        name: "PK_User_Many_To_One_Authorization",
                         column: x => x.AuthorizationID,
                         principalTable: "Authorization",
-                        principalColumn: "AuthorizationID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "AuthorizationID");
                 });
 
             migrationBuilder.CreateTable(
@@ -105,23 +104,20 @@ namespace MovieAPI.Migrations
                 {
                     table.PrimaryKey("PK_MovieInformation", x => x.MovieID);
                     table.ForeignKey(
-                        name: "PK_MovieInformation_One_To_One_Classification",
+                        name: "PK_MovieInformation_Many_To_One_Classification",
                         column: x => x.ClassID,
                         principalTable: "Classification",
-                        principalColumn: "ClassID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ClassID");
                     table.ForeignKey(
                         name: "PK_MovieInformation_One_To_One_Genre",
                         column: x => x.GenreID,
                         principalTable: "Genre",
-                        principalColumn: "GenreID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "GenreID");
                     table.ForeignKey(
                         name: "PK_MovieInformation_One_To_One_MovieType",
                         column: x => x.MovieTypeID,
                         principalTable: "MovieType",
-                        principalColumn: "MovieTypeID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "MovieTypeID");
                     table.ForeignKey(
                         name: "PK_User_One_To_Many_MovieInformation",
                         column: x => x.UserID,
@@ -149,8 +145,7 @@ namespace MovieAPI.Migrations
                         name: "PK_Profile_One_To_One_Classification",
                         column: x => x.ClassID,
                         principalTable: "Classification",
-                        principalColumn: "ClassID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ClassID");
                     table.ForeignKey(
                         name: "PK_Profile_One_To_One_User",
                         column: x => x.UserID,
@@ -176,7 +171,7 @@ namespace MovieAPI.Migrations
                 {
                     table.PrimaryKey("PK_Token", x => x.TokenID);
                     table.ForeignKey(
-                        name: "FK_Token_User_UserID",
+                        name: "PK_User_One_To_One_Token",
                         column: x => x.UserID,
                         principalTable: "User",
                         principalColumn: "UserID",
@@ -213,20 +208,17 @@ namespace MovieAPI.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_MovieInformation_ClassID",
                 table: "MovieInformation",
-                column: "ClassID",
-                unique: true);
+                column: "ClassID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieInformation_GenreID",
                 table: "MovieInformation",
-                column: "GenreID",
-                unique: true);
+                column: "GenreID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieInformation_MovieTypeID",
                 table: "MovieInformation",
-                column: "MovieTypeID",
-                unique: true);
+                column: "MovieTypeID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MovieInformation_UserID",
@@ -236,8 +228,7 @@ namespace MovieAPI.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Profile_ClassID",
                 table: "Profile",
-                column: "ClassID",
-                unique: true);
+                column: "ClassID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Profile_UserID",
@@ -264,8 +255,7 @@ namespace MovieAPI.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_User_AuthorizationID",
                 table: "User",
-                column: "AuthorizationID",
-                unique: true);
+                column: "AuthorizationID");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

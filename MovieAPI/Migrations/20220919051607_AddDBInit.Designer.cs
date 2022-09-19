@@ -12,7 +12,7 @@ using MovieAPI.Data.DbConfig;
 namespace MovieAPI.Migrations
 {
     [DbContext(typeof(MovieAPIDbContext))]
-    [Migration("20220919042328_AddDBInit")]
+    [Migration("20220919051607_AddDBInit")]
     partial class AddDBInit
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -132,14 +132,11 @@ namespace MovieAPI.Migrations
 
                     b.HasKey("MovieID");
 
-                    b.HasIndex("ClassID")
-                        .IsUnique();
+                    b.HasIndex("ClassID");
 
-                    b.HasIndex("GenreID")
-                        .IsUnique();
+                    b.HasIndex("GenreID");
 
-                    b.HasIndex("MovieTypeID")
-                        .IsUnique();
+                    b.HasIndex("MovieTypeID");
 
                     b.HasIndex("UserID");
 
@@ -188,8 +185,7 @@ namespace MovieAPI.Migrations
 
                     b.HasKey("ProfileID");
 
-                    b.HasIndex("ClassID")
-                        .IsUnique();
+                    b.HasIndex("ClassID");
 
                     b.HasIndex("UserID")
                         .IsUnique();
@@ -287,8 +283,7 @@ namespace MovieAPI.Migrations
 
                     b.HasKey("UserID");
 
-                    b.HasIndex("AuthorizationID")
-                        .IsUnique();
+                    b.HasIndex("AuthorizationID");
 
                     b.ToTable("User", (string)null);
                 });
@@ -296,23 +291,23 @@ namespace MovieAPI.Migrations
             modelBuilder.Entity("MovieAPI.Data.MovieInformation", b =>
                 {
                     b.HasOne("MovieAPI.Data.Classification", "Classification")
-                        .WithOne("MovieInformation")
-                        .HasForeignKey("MovieAPI.Data.MovieInformation", "ClassID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany("MovieInformations")
+                        .HasForeignKey("ClassID")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("PK_MovieInformation_One_To_One_Classification");
+                        .HasConstraintName("PK_MovieInformation_Many_To_One_Classification");
 
                     b.HasOne("MovieAPI.Data.Genre", "Genre")
-                        .WithOne("MovieInformation")
-                        .HasForeignKey("MovieAPI.Data.MovieInformation", "GenreID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany("MovieInformations")
+                        .HasForeignKey("GenreID")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("PK_MovieInformation_One_To_One_Genre");
 
                     b.HasOne("MovieAPI.Data.MovieType", "MovieType")
-                        .WithOne("MovieInformation")
-                        .HasForeignKey("MovieAPI.Data.MovieInformation", "MovieTypeID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany("MovieInformations")
+                        .HasForeignKey("MovieTypeID")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("PK_MovieInformation_One_To_One_MovieType");
 
@@ -335,9 +330,9 @@ namespace MovieAPI.Migrations
             modelBuilder.Entity("MovieAPI.Data.Profile", b =>
                 {
                     b.HasOne("MovieAPI.Data.Classification", "Classification")
-                        .WithOne("Profile")
-                        .HasForeignKey("MovieAPI.Data.Profile", "ClassID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany("Profiles")
+                        .HasForeignKey("ClassID")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("PK_Profile_One_To_One_Classification");
 
@@ -380,7 +375,8 @@ namespace MovieAPI.Migrations
                         .WithOne("Token")
                         .HasForeignKey("MovieAPI.Data.Token", "UserID")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("PK_User_One_To_One_Token");
 
                     b.Navigation("User");
                 });
@@ -388,11 +384,11 @@ namespace MovieAPI.Migrations
             modelBuilder.Entity("MovieAPI.Data.User", b =>
                 {
                     b.HasOne("MovieAPI.Data.Authorization", "Authorization")
-                        .WithOne("User")
-                        .HasForeignKey("MovieAPI.Data.User", "AuthorizationID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany("User")
+                        .HasForeignKey("AuthorizationID")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("PK_User_One_To_One_Authorization");
+                        .HasConstraintName("PK_User_Many_To_One_Authorization");
 
                     b.Navigation("Authorization");
                 });
@@ -404,14 +400,14 @@ namespace MovieAPI.Migrations
 
             modelBuilder.Entity("MovieAPI.Data.Classification", b =>
                 {
-                    b.Navigation("MovieInformation");
+                    b.Navigation("MovieInformations");
 
-                    b.Navigation("Profile");
+                    b.Navigation("Profiles");
                 });
 
             modelBuilder.Entity("MovieAPI.Data.Genre", b =>
                 {
-                    b.Navigation("MovieInformation");
+                    b.Navigation("MovieInformations");
                 });
 
             modelBuilder.Entity("MovieAPI.Data.MovieInformation", b =>
@@ -421,7 +417,7 @@ namespace MovieAPI.Migrations
 
             modelBuilder.Entity("MovieAPI.Data.MovieType", b =>
                 {
-                    b.Navigation("MovieInformation");
+                    b.Navigation("MovieInformations");
                 });
 
             modelBuilder.Entity("MovieAPI.Data.User", b =>
