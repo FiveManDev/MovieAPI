@@ -1,6 +1,4 @@
-﻿using MovieAPI.Controllers;
-using System.Reflection;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 
 namespace MovieAPI.Helpers

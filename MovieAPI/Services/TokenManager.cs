@@ -64,16 +64,17 @@ namespace MovieAPI.Services
                 RefreshToken = refreshToken
             };
         }
-        public string DecodeToken(TokenModel tokenModel)
+        public UserModel DecodeToken(string AccessToken)
         {
-            var accessToken = tokenModel.AccessToken!.Replace("Bearer ", "");
+            var accessToken = AccessToken!.Replace("Bearer ", "");
             var token = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);
             var list = token.Claims.ToList();
-            foreach (var item in list)
+            var userModel = new UserModel
             {
-                Console.WriteLine(item);
-            }
-            return null;
+                UserID=list[0].Value,
+                AuthorizationID=list[1].Value,
+            };
+            return userModel;
         }
     }
 }
