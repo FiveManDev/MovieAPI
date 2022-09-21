@@ -17,10 +17,8 @@ builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
 builder.Services.AddControllers();
 //Add config database
-var connectionString = builder.Configuration.GetConnectionString("MovieAPIConnection");
-builder.Services.AddDbContext<MovieAPIDbContext>(options => {
-    options.UseSqlServer(connectionString);
-});
+AppSettings.ConnectionString = builder.Configuration.GetConnectionString("MovieAPIConnection");
+builder.Services.AddDbContext<MovieAPIDbContext>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

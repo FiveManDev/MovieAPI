@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MovieAPI.Migrations
 {
-    public partial class DBInit : Migration
+    public partial class DbInit : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -135,7 +135,7 @@ namespace MovieAPI.Migrations
                 {
                     ProfileID = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "User_"),
-                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "7956afd6-3597-4c58-9a73-a1fda0533446"),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "5168b7e1-085f-45bd-be8b-cac77549aea9"),
                     Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EMail = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -164,10 +164,6 @@ namespace MovieAPI.Migrations
                     TokenID = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
                     AccessToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     RefreshToken = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    IsUsed = table.Column<bool>(type: "bit", nullable: false),
-                    IsRevoked = table.Column<bool>(type: "bit", nullable: false),
-                    IssuedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ExpiredAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -213,9 +209,9 @@ namespace MovieAPI.Migrations
                 columns: new[] { "AuthorizationID", "AuthorizationLevel", "AuthorizationName" },
                 values: new object[,]
                 {
-                    { new Guid("26a16182-8f45-4911-b143-a4f5d12abcba"), 2, "Film Poducer" },
-                    { new Guid("df57c066-37c8-4ea3-a5f0-842e90da4bc5"), 3, "Admin" },
-                    { new Guid("f72b7ba0-0357-4728-9e05-6ff9f523aba1"), 1, "Normal User" }
+                    { new Guid("63e9479f-308e-4b40-809f-4a36197e7194"), 1, "Normal User" },
+                    { new Guid("9ab24764-9eca-4a5c-8dd3-6fbbf49c2b80"), 3, "Admin" },
+                    { new Guid("f4d7ab68-398d-441d-aec9-ab3f96fa5e40"), 2, "Film Poducer" }
                 });
 
             migrationBuilder.InsertData(
@@ -223,8 +219,8 @@ namespace MovieAPI.Migrations
                 columns: new[] { "ClassID", "ClassLevel", "ClassName", "ClassPrice" },
                 values: new object[,]
                 {
-                    { new Guid("5e9fa6f3-fbd7-46ce-9194-0d4342d26a47"), 2, "Premium", 100.0 },
-                    { new Guid("fcc5e61d-d2c5-4688-b6ca-d53b9937252f"), 1, "Basic", 0.0 }
+                    { new Guid("37edf2c1-3cc3-4ed1-bf93-929f424736e6"), 1, "Basic", 0.0 },
+                    { new Guid("f1a39d16-eaa3-4022-8ce3-6ce7835a55b9"), 2, "Premium", 100.0 }
                 });
 
             migrationBuilder.InsertData(
@@ -232,23 +228,23 @@ namespace MovieAPI.Migrations
                 columns: new[] { "GenreID", "GenreName" },
                 values: new object[,]
                 {
-                    { new Guid("0cf840ee-b757-4491-ad56-af8ddc9e60fa"), "Crime & Gangster" },
-                    { new Guid("0f6c4b1d-f667-4cb0-be31-698b2261c182"), "Epics / Hisorical" },
-                    { new Guid("4106ce85-99c1-4838-b88a-59a03aeafaf0"), "Cartoon" },
-                    { new Guid("474c3cad-933d-457b-b03f-d4329176ecba"), "Horror Films" },
-                    { new Guid("49d5a98a-7a97-4ac6-b4dc-2aa852867612"), "War (Anti-war)" },
-                    { new Guid("4cc76a6e-b15d-4d02-b9e7-25dab9d2a684"), "Romance" },
-                    { new Guid("6579a651-c8cd-4a70-930a-270971e65169"), "Adventure" },
-                    { new Guid("68467152-d46c-4b91-851c-9d8ec1c094a4"), "Drama Films" },
-                    { new Guid("68fffc55-c6d4-4d60-9198-01daa7246d3b"), "Science Fiction" },
-                    { new Guid("6cafee67-7357-44a8-97cd-5526765819d1"), "Comedy" },
-                    { new Guid("9801a120-0ab3-460f-81e9-1f8d05ee356d"), "Sitcom" },
-                    { new Guid("a1027cb7-d4f4-4c0c-9092-5df7935becb5"), "Documentary" },
-                    { new Guid("a4df0fc5-8c37-499d-8b32-3f7657b0f890"), "Westerns" },
-                    { new Guid("ba11ea3b-017e-419d-9bdd-2bcbf138be20"), "Action" },
-                    { new Guid("be76f7eb-b98c-4081-9e7c-a7ff51e14ab2"), "Mucicals (Dance)" },
-                    { new Guid("eb537f9e-ee73-4eb0-9d00-23a1964bae39"), "Documentary" },
-                    { new Guid("ed31a14d-c0be-4e33-ae97-91dd1f903b9d"), "Tragedy" }
+                    { new Guid("02b3e5a7-c72c-48f8-a9cd-b99df8355bca"), "Documentary" },
+                    { new Guid("1286a972-7aae-433e-87d9-14935a8ea7b2"), "Mucicals (Dance)" },
+                    { new Guid("3e25a731-d9f0-4ce3-9d42-00ee3b617c9d"), "Science Fiction" },
+                    { new Guid("41282142-2f66-43d5-91ec-9e86ad78e4b3"), "Tragedy" },
+                    { new Guid("415cc598-f313-4a3a-b0a8-355b69857fa7"), "Action" },
+                    { new Guid("4f478506-f01e-49a3-9837-e653bdf72124"), "War (Anti-war)" },
+                    { new Guid("4fe2d57d-6569-4acc-a97f-fe4ed7535510"), "Comedy" },
+                    { new Guid("62ade6a6-b2ef-4dfb-86df-d86a90ed15bd"), "Cartoon" },
+                    { new Guid("79387353-3d4b-4dc0-bc50-9f6161c8f88e"), "Documentary" },
+                    { new Guid("b0e32d17-8381-41b3-a978-a2f18a63c6f7"), "Crime & Gangster" },
+                    { new Guid("c027ce73-bd7b-4630-b17f-683f6160d69c"), "Romance" },
+                    { new Guid("dda59f1d-b580-492b-8547-58213874c323"), "Epics / Hisorical" },
+                    { new Guid("e8ff2466-d57f-481b-9419-d0072f1433cc"), "Sitcom" },
+                    { new Guid("eb538398-298f-4e3a-bdf1-efb2ac9d8e14"), "Drama Films" },
+                    { new Guid("edf567b4-c02e-4d76-861b-577b9bad2e3c"), "Adventure" },
+                    { new Guid("f21fce82-cc03-434e-ac26-95e26b7cfa78"), "Horror Films" },
+                    { new Guid("fc59c8fc-f627-44b6-b2ff-e40333675d3f"), "Westerns" }
                 });
 
             migrationBuilder.InsertData(
@@ -256,11 +252,11 @@ namespace MovieAPI.Migrations
                 columns: new[] { "MovieTypeID", "MovieTypeName" },
                 values: new object[,]
                 {
-                    { new Guid("25af33ba-965b-41cc-b961-4d4afdc659b0"), "Movie Confession" },
-                    { new Guid("26c28429-a9ad-4f92-bbd3-12261f9bb9b2"), "TV Show" },
-                    { new Guid("ccd9a085-321e-4d64-9298-71c0c6544035"), "Exclusive movie" },
-                    { new Guid("e0100654-cf05-48df-bcd3-bd6196141d32"), "Movie Theater" },
-                    { new Guid("e667cee1-ff61-4dbc-bf57-ed4f4d2878c6"), "Short Video" }
+                    { new Guid("1e69e16c-31fb-4059-8264-146416c0fc4b"), "TV Show" },
+                    { new Guid("4ad82e82-b4f6-4a9d-a94e-df3761c06c72"), "Short Video" },
+                    { new Guid("dde622e4-8c18-4215-a476-c7d4e4bf8c28"), "Exclusive movie" },
+                    { new Guid("de39405d-4235-4926-840b-760338cdb421"), "Movie Confession" },
+                    { new Guid("e4e84026-8a3d-4d8e-a47d-d6ee51060601"), "Movie Theater" }
                 });
 
             migrationBuilder.CreateIndex(

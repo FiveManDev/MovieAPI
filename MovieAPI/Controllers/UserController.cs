@@ -1,21 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MovieAPI.Data;
 using MovieAPI.Data.DbConfig;
 using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Services;
-using System.Collections;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
-using System.Xml.Linq;
 
 namespace MovieAPI.Controllers
 {
@@ -24,11 +17,9 @@ namespace MovieAPI.Controllers
     [ApiVersion("1")]
     public class UserController : ControllerBase
     {
-        private readonly MovieAPIDbContext context;
         private readonly ILogger<UserController> logger;
-        public UserController(MovieAPIDbContext movieAPIDbContext, ILogger<UserController> iLogger)
+        public UserController(ILogger<UserController> iLogger)
         {
-            context = movieAPIDbContext;
             logger = iLogger;
         }
         [HttpPost]
@@ -37,6 +28,7 @@ namespace MovieAPI.Controllers
             Guid userId = new Guid();
             try
             {
+                using var context = new MovieAPIDbContext();
                 var userCheck = context.Users!.FirstOrDefault(user => user.UserName == UserName);
                 if (userCheck == null)
                 {
@@ -102,23 +94,33 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                using var context = new MovieAPIDbContext();
                 var user = context.Users!.FirstOrDefault(user => user.UserName == UserName
-                                                             && user.Password == Password);
+                                                         && user.Password == Password);
                 if (user != null)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", 1));
                     var TokensExist = context.Tokens!.FirstOrDefault(token => token.UserID == user.UserID);
-                    if(TokensExist!= null)
+                    if (TokensExist != null)
                     {
                         context.Tokens!.Remove(TokensExist);
                         context.SaveChanges();
                     }
-                    var TokenManager = new TokenManager(context, logger);
+                    var Token = TokenManager.GenerateAccessToken(user);
+                    var tokenData = new Token
+                    {
+                        AccessToken = Token.AccessToken,
+                        RefreshToken = Token.RefreshToken,
+                        UserID = user.UserID
+                    };
+                    context.Tokens?.Add(tokenData);
+                    context.SaveChanges();
+                    logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Token"));
                     return Ok(new ApiResponse
                     {
                         IsSuccess = true,
                         Message = "Login Success",
-                        Data = TokenManager.GenerateAccessToken(user)
+                        Data = Token
                     });
                 }
                 else
@@ -161,6 +163,7 @@ namespace MovieAPI.Controllers
             };
             try
             {
+                using var context = new MovieAPIDbContext();
                 var tokenInVerification = jwtTokenHandler.ValidateToken(tokenModel.AccessToken, tokenValidateParam, out var validatedToken);
                 if (validatedToken is JwtSecurityToken jwtSecurityToken)
                 {
@@ -184,7 +187,8 @@ namespace MovieAPI.Controllers
                         Message = "Access token has not yet expired"
                     });
                 }
-                var storedToken = context.Tokens!.FirstOrDefault(x => x.RefreshToken == tokenModel.RefreshToken);
+                var storedToken = context.Tokens!.FirstOrDefault(token => token.RefreshToken == tokenModel.RefreshToken
+                                                                          && token.AccessToken == tokenModel.AccessToken);
                 if (storedToken == null)
                 {
                     return Ok(new ApiResponse
@@ -193,35 +197,20 @@ namespace MovieAPI.Controllers
                         Message = "Refresh token does not exist"
                     });
                 }
-                if (storedToken.IsUsed)
-                {
-                    return Ok(new ApiResponse
-                    {
-                        IsSuccess = false,
-                        Message = "Refresh token has been used"
-                    });
-                }
-                if (storedToken.IsRevoked)
-                {
-                    return Ok(new ApiResponse
-                    {
-                        IsSuccess = false,
-                        Message = "Refresh token has been revoked"
-                    });
-                }
-                storedToken.IsRevoked = true;
-                storedToken.IsUsed = true;
+                storedToken.RefreshToken = Guid.NewGuid().ToString();
                 context.Tokens!.Update(storedToken);
                 context.SaveChanges();
                 logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PutDataSuccess("Token", 1));
-                var TokenManager = new TokenManager(context, logger);
-                var user = context.Users!.SingleOrDefault(user => user.UserID == storedToken.UserID);
-                var token = TokenManager.GenerateAccessToken(user!);
+                
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Message = "Renew token success",
-                    Data = token
+                    Message = "Refresh token successful",
+                    Data = new TokenModel
+                    {
+                        AccessToken = storedToken.AccessToken,
+                        RefreshToken = storedToken.RefreshToken
+                    }
                 });
             }
             catch (Exception ex)
@@ -238,13 +227,12 @@ namespace MovieAPI.Controllers
         [Authorize]
         public IActionResult DecodeToken()
         {
-            TokenManager tokenManager = new TokenManager(context, logger);
             var token = Request.Headers["Authorization"];
-            string userRole = tokenManager.DecodeToken(token).AuthorizationID!;
+            string userRole = TokenManager.DecodeToken(token).AuthorizationID!;
             return Ok(new ApiResponse
             {
-                IsSuccess=true,
-                Message="",
+                IsSuccess = true,
+                Message = "",
                 Data = userRole
             });
         }

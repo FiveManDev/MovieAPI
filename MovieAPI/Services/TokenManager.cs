@@ -13,14 +13,7 @@ namespace MovieAPI.Services
 {
     public class TokenManager
     {
-        private readonly MovieAPIDbContext context;
-        private readonly ILogger logger;
-        public TokenManager(MovieAPIDbContext movieAPIDbContext, ILogger iLogger)
-        {
-            context = movieAPIDbContext;
-            logger = iLogger;
-        }
-        public TokenModel GenerateAccessToken(User user)
+        public static TokenModel GenerateAccessToken(User user)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var secretKeyBytes = Encoding.UTF8.GetBytes(AppSettings.SecretKey!);
@@ -37,34 +30,14 @@ namespace MovieAPI.Services
             };
             var token = jwtTokenHandler.CreateToken(tokenDescription);
             var accessToken = jwtTokenHandler.WriteToken(token);
-            var refreshToken = RandomText.RandomCharacter();
-            var tokenData = new Token
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
-                IsUsed = false,
-                IsRevoked = false,
-                IssuedAt = DateTime.UtcNow,
-                ExpiredAt = expires,
-                User = user
-            };
-            try
-            {
-                context.Tokens?.Add(tokenData);
-                context.SaveChanges();
-                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Token"));
-            }
-            catch(Exception ex)
-            {
-                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError(ex.ToString(),"Token"));
-            }
+            var refreshToken = Guid.NewGuid().ToString();
             return new TokenModel
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken
             };
         }
-        public UserModel DecodeToken(string AccessToken)
+        public static UserModel DecodeToken(string AccessToken)
         {
             var accessToken = AccessToken!.Replace("Bearer ", "");
             var token = new JwtSecurityTokenHandler().ReadJwtToken(accessToken);

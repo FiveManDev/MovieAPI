@@ -12,8 +12,8 @@ using MovieAPI.Data.DbConfig;
 namespace MovieAPI.Migrations
 {
     [DbContext(typeof(MovieAPIDbContext))]
-    [Migration("20220919171939_DBInit")]
-    partial class DBInit
+    [Migration("20220921182053_DbInit")]
+    partial class DbInit
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -44,19 +44,19 @@ namespace MovieAPI.Migrations
                     b.HasData(
                         new
                         {
-                            AuthorizationID = new Guid("f72b7ba0-0357-4728-9e05-6ff9f523aba1"),
+                            AuthorizationID = new Guid("63e9479f-308e-4b40-809f-4a36197e7194"),
                             AuthorizationLevel = 1,
                             AuthorizationName = "Normal User"
                         },
                         new
                         {
-                            AuthorizationID = new Guid("26a16182-8f45-4911-b143-a4f5d12abcba"),
+                            AuthorizationID = new Guid("f4d7ab68-398d-441d-aec9-ab3f96fa5e40"),
                             AuthorizationLevel = 2,
                             AuthorizationName = "Film Poducer"
                         },
                         new
                         {
-                            AuthorizationID = new Guid("df57c066-37c8-4ea3-a5f0-842e90da4bc5"),
+                            AuthorizationID = new Guid("9ab24764-9eca-4a5c-8dd3-6fbbf49c2b80"),
                             AuthorizationLevel = 3,
                             AuthorizationName = "Admin"
                         });
@@ -85,14 +85,14 @@ namespace MovieAPI.Migrations
                     b.HasData(
                         new
                         {
-                            ClassID = new Guid("fcc5e61d-d2c5-4688-b6ca-d53b9937252f"),
+                            ClassID = new Guid("37edf2c1-3cc3-4ed1-bf93-929f424736e6"),
                             ClassLevel = 1,
                             ClassName = "Basic",
                             ClassPrice = 0.0
                         },
                         new
                         {
-                            ClassID = new Guid("5e9fa6f3-fbd7-46ce-9194-0d4342d26a47"),
+                            ClassID = new Guid("f1a39d16-eaa3-4022-8ce3-6ce7835a55b9"),
                             ClassLevel = 2,
                             ClassName = "Premium",
                             ClassPrice = 100.0
@@ -116,87 +116,87 @@ namespace MovieAPI.Migrations
                     b.HasData(
                         new
                         {
-                            GenreID = new Guid("ba11ea3b-017e-419d-9bdd-2bcbf138be20"),
+                            GenreID = new Guid("415cc598-f313-4a3a-b0a8-355b69857fa7"),
                             GenreName = "Action"
                         },
                         new
                         {
-                            GenreID = new Guid("6579a651-c8cd-4a70-930a-270971e65169"),
+                            GenreID = new Guid("edf567b4-c02e-4d76-861b-577b9bad2e3c"),
                             GenreName = "Adventure"
                         },
                         new
                         {
-                            GenreID = new Guid("6cafee67-7357-44a8-97cd-5526765819d1"),
+                            GenreID = new Guid("4fe2d57d-6569-4acc-a97f-fe4ed7535510"),
                             GenreName = "Comedy"
                         },
                         new
                         {
-                            GenreID = new Guid("4106ce85-99c1-4838-b88a-59a03aeafaf0"),
+                            GenreID = new Guid("62ade6a6-b2ef-4dfb-86df-d86a90ed15bd"),
                             GenreName = "Cartoon"
                         },
                         new
                         {
-                            GenreID = new Guid("0cf840ee-b757-4491-ad56-af8ddc9e60fa"),
+                            GenreID = new Guid("b0e32d17-8381-41b3-a978-a2f18a63c6f7"),
                             GenreName = "Crime & Gangster"
                         },
                         new
                         {
-                            GenreID = new Guid("68467152-d46c-4b91-851c-9d8ec1c094a4"),
+                            GenreID = new Guid("eb538398-298f-4e3a-bdf1-efb2ac9d8e14"),
                             GenreName = "Drama Films"
                         },
                         new
                         {
-                            GenreID = new Guid("0f6c4b1d-f667-4cb0-be31-698b2261c182"),
+                            GenreID = new Guid("dda59f1d-b580-492b-8547-58213874c323"),
                             GenreName = "Epics / Hisorical"
                         },
                         new
                         {
-                            GenreID = new Guid("474c3cad-933d-457b-b03f-d4329176ecba"),
+                            GenreID = new Guid("f21fce82-cc03-434e-ac26-95e26b7cfa78"),
                             GenreName = "Horror Films"
                         },
                         new
                         {
-                            GenreID = new Guid("be76f7eb-b98c-4081-9e7c-a7ff51e14ab2"),
+                            GenreID = new Guid("1286a972-7aae-433e-87d9-14935a8ea7b2"),
                             GenreName = "Mucicals (Dance)"
                         },
                         new
                         {
-                            GenreID = new Guid("68fffc55-c6d4-4d60-9198-01daa7246d3b"),
+                            GenreID = new Guid("3e25a731-d9f0-4ce3-9d42-00ee3b617c9d"),
                             GenreName = "Science Fiction"
                         },
                         new
                         {
-                            GenreID = new Guid("49d5a98a-7a97-4ac6-b4dc-2aa852867612"),
+                            GenreID = new Guid("4f478506-f01e-49a3-9837-e653bdf72124"),
                             GenreName = "War (Anti-war)"
                         },
                         new
                         {
-                            GenreID = new Guid("a4df0fc5-8c37-499d-8b32-3f7657b0f890"),
+                            GenreID = new Guid("fc59c8fc-f627-44b6-b2ff-e40333675d3f"),
                             GenreName = "Westerns"
                         },
                         new
                         {
-                            GenreID = new Guid("4cc76a6e-b15d-4d02-b9e7-25dab9d2a684"),
+                            GenreID = new Guid("c027ce73-bd7b-4630-b17f-683f6160d69c"),
                             GenreName = "Romance"
                         },
                         new
                         {
-                            GenreID = new Guid("ed31a14d-c0be-4e33-ae97-91dd1f903b9d"),
+                            GenreID = new Guid("41282142-2f66-43d5-91ec-9e86ad78e4b3"),
                             GenreName = "Tragedy"
                         },
                         new
                         {
-                            GenreID = new Guid("eb537f9e-ee73-4eb0-9d00-23a1964bae39"),
+                            GenreID = new Guid("02b3e5a7-c72c-48f8-a9cd-b99df8355bca"),
                             GenreName = "Documentary"
                         },
                         new
                         {
-                            GenreID = new Guid("9801a120-0ab3-460f-81e9-1f8d05ee356d"),
+                            GenreID = new Guid("e8ff2466-d57f-481b-9419-d0072f1433cc"),
                             GenreName = "Sitcom"
                         },
                         new
                         {
-                            GenreID = new Guid("a1027cb7-d4f4-4c0c-9092-5df7935becb5"),
+                            GenreID = new Guid("79387353-3d4b-4dc0-bc50-9f6161c8f88e"),
                             GenreName = "Documentary"
                         });
                 });
@@ -292,27 +292,27 @@ namespace MovieAPI.Migrations
                     b.HasData(
                         new
                         {
-                            MovieTypeID = new Guid("e667cee1-ff61-4dbc-bf57-ed4f4d2878c6"),
+                            MovieTypeID = new Guid("4ad82e82-b4f6-4a9d-a94e-df3761c06c72"),
                             MovieTypeName = "Short Video"
                         },
                         new
                         {
-                            MovieTypeID = new Guid("e0100654-cf05-48df-bcd3-bd6196141d32"),
+                            MovieTypeID = new Guid("e4e84026-8a3d-4d8e-a47d-d6ee51060601"),
                             MovieTypeName = "Movie Theater"
                         },
                         new
                         {
-                            MovieTypeID = new Guid("26c28429-a9ad-4f92-bbd3-12261f9bb9b2"),
+                            MovieTypeID = new Guid("1e69e16c-31fb-4059-8264-146416c0fc4b"),
                             MovieTypeName = "TV Show"
                         },
                         new
                         {
-                            MovieTypeID = new Guid("25af33ba-965b-41cc-b961-4d4afdc659b0"),
+                            MovieTypeID = new Guid("de39405d-4235-4926-840b-760338cdb421"),
                             MovieTypeName = "Movie Confession"
                         },
                         new
                         {
-                            MovieTypeID = new Guid("ccd9a085-321e-4d64-9298-71c0c6544035"),
+                            MovieTypeID = new Guid("dde622e4-8c18-4215-a476-c7d4e4bf8c28"),
                             MovieTypeName = "Exclusive movie"
                         });
                 });
@@ -341,7 +341,7 @@ namespace MovieAPI.Migrations
                     b.Property<string>("LastName")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("7956afd6-3597-4c58-9a73-a1fda0533446");
+                        .HasDefaultValue("5168b7e1-085f-45bd-be8b-cac77549aea9");
 
                     b.Property<Guid>("UserID")
                         .HasColumnType("uniqueidentifier");
@@ -399,18 +399,6 @@ namespace MovieAPI.Migrations
 
                     b.Property<string>("AccessToken")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ExpiredAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsRevoked")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("IssuedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");

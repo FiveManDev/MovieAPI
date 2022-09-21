@@ -1,11 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MovieAPI.Services;
 using System.Security.Principal;
 
 namespace MovieAPI.Data.DbConfig
 {
     public class MovieAPIDbContext : DbContext
     {
-        public MovieAPIDbContext(DbContextOptions options) : base(options) { }
+        public MovieAPIDbContext(){ }
         #region Dbset
         public DbSet<User>? Users { get; set; }
         public DbSet<Profile>? Profiles { get; set; }
@@ -61,10 +62,6 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(token => token.TokenID).HasDefaultValueSql("NEWID()");
                 e.Property(token => token.AccessToken);
                 e.Property(token => token.RefreshToken);
-                e.Property(token => token.IsUsed);
-                e.Property(token => token.IsRevoked);
-                e.Property(token => token.IssuedAt);
-                e.Property(token => token.ExpiredAt);
                 e.HasOne(token => token.User)
                     .WithOne(user => user.Token)
                     .HasForeignKey<Token>(token => token.UserID)
@@ -198,6 +195,10 @@ namespace MovieAPI.Data.DbConfig
                );
             #endregion
 
+        }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlServer(AppSettings.ConnectionString!);
         }
     }
 }
