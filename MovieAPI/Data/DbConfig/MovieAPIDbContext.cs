@@ -15,7 +15,7 @@ namespace MovieAPI.Data.DbConfig
         public DbSet<Classification>? Classifications { get; set; }
         public DbSet<MovieInformation>? MovieInformations { get; set; }
         public DbSet<MovieType>? MovieTypes { get; set; }
-        public DbSet<Genre>? Categories { get; set; }
+        public DbSet<Genre>? Genres { get; set; }
         public DbSet<Review>? Reviews { get; set; }
         #endregion
         protected override void OnModelCreating(ModelBuilder modelBuilder)
