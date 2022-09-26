@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MovieAPI.Data;
 using MovieAPI.Data.DbConfig;
@@ -18,10 +20,61 @@ namespace MovieAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly ILogger<UserController> logger;
-        public UserController(ILogger<UserController> iLogger)
+        private readonly IMapper _mapper;
+
+        public UserController(ILogger<UserController> iLogger, IMapper mapper)
         {
             logger = iLogger;
+            _mapper = mapper;
         }
+
+        // Get user information
+        [HttpGet]
+        [Authorize]
+        public IActionResult GetUserInformation()
+        {
+            try
+            {
+                string useId = User.Claims.FirstOrDefault(claim => claim.Type == "UserID").Value;
+                using var context = new MovieAPIDbContext();
+                var user = context.Users
+                    .Include(user => user.Profile)
+                    .Include(user => user.Authorization)
+                    .FirstOrDefault(user => user.UserID.ToString() == useId);
+
+                if (user != null)
+                {
+
+                    var userDTO = _mapper.Map<User, UserDTO>(user);
+                   
+                    logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", 1));
+                    return Ok(new ApiResponse
+                    {
+                        IsSuccess = true,
+                        Message = "Get All Genre Of Movie Success",
+                        Data = userDTO
+                    });
+                }
+                else
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Cannot Get User Information!"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError("User", ex.ToString()));
+                return NotFound(new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Cannot Get User Information! Something wrong!"
+                });
+            }
+        }
+
         [HttpPost]
         public ActionResult CreateUser(string UserName, string Password, string Email)
         {
@@ -50,7 +103,7 @@ namespace MovieAPI.Controllers
                     userId = user.UserID;
                     int minClassLevel = context.Classifications!.Min(auth => auth.ClassLevel);
                     Guid classID = context.Classifications!.Where(s => s.ClassLevel == minClassLevel).First().ClassID;
-                    var profile = new Profile
+                    var profile = new Data.Profile
                     {
                         EMail = Email,
                         UserID = userId,

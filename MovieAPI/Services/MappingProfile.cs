@@ -1,10 +1,8 @@
 ﻿using MovieAPI.Data;
 using MovieAPI.Models;
-using Profile = AutoMapper.Profile;
-
-namespace MovieAPI.Mapper
+namespace MovieAPI.Services
 {
-    public class MappingProfile : Profile
+    public class MappingProfile : AutoMapper.Profile
     {
         public MappingProfile()
         {
@@ -32,7 +30,17 @@ namespace MovieAPI.Mapper
                 )
                 .ReverseMap();
 
-            //CreateMap<MovieDTO, MovieInformation>();
+            // Mapping (User, UserDTO)
+            CreateMap<User, UserDTO>()
+                .ReverseMap();
+
+            // Mapping (Profile, ProfileDTO)
+            CreateMap<Profile, ProfileDTO>()
+                .ReverseMap();
+
+            // Mapping (Authorization, AuthorizationDTO)
+            CreateMap<Authorization, AuthorizationDTO>()
+                .ReverseMap();
         }
     }
 }

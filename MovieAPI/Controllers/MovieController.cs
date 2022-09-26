@@ -22,6 +22,8 @@ namespace MovieAPI.Controllers
             logger = iLogger;
             _mapper = mapper;
         }
+
+        // Get a movie information by id
         [HttpGet]
         public IActionResult GetAMovieInformationById(string id)
         {
@@ -64,5 +66,46 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
+        // Get all genre of movie
+        [HttpGet]
+        public IActionResult GetAllGenreOfMovie()
+        {
+            try
+            {
+                using var context = new MovieAPIDbContext();
+                IEnumerable<Genre> genres = context.Genres.ToList();
+                if (genres != null)
+                {
+                    List<String> genresName = genres.Select(genre => genre.GenreName).ToList();
+
+                    logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("Genre", genresName.Count()));
+                    return Ok(new ApiResponse
+                    {
+                        IsSuccess = true,
+                        Message = "Get All Genre Of Movie Success",
+                        Data = genresName
+                    });
+                }
+                else
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Cannot Get All Genre Of Movie! Something wrong!"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError("Genre", ex.ToString()));
+                return NotFound(new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Cannot Get All Genre Of Movie! Something wrong!"
+                });
+            }
+        }
+    
     }
 }
