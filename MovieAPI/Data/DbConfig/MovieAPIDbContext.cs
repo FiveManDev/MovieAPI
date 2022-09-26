@@ -8,15 +8,15 @@ namespace MovieAPI.Data.DbConfig
     {
         public MovieAPIDbContext(){ }
         #region Dbset
-        public DbSet<User>? Users { get; set; }
-        public DbSet<Profile>? Profiles { get; set; }
-        public DbSet<Token>? Tokens { get; set; }
-        public DbSet<Authorization>? Authorizations { get; set; }
-        public DbSet<Classification>? Classifications { get; set; }
-        public DbSet<MovieInformation>? MovieInformations { get; set; }
-        public DbSet<MovieType>? MovieTypes { get; set; }
-        public DbSet<Genre>? Genres { get; set; }
-        public DbSet<Review>? Reviews { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Profile> Profiles { get; set; }
+        public DbSet<Token> Tokens { get; set; }
+        public DbSet<Authorization> Authorizations { get; set; }
+        public DbSet<Classification> Classifications { get; set; }
+        public DbSet<MovieInformation> MovieInformations { get; set; }
+        public DbSet<MovieType> MovieTypes { get; set; }
+        public DbSet<Genre> Genres { get; set; }
+        public DbSet<Review> Reviews { get; set; }
         #endregion
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

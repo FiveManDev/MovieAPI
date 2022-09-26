@@ -2,8 +2,8 @@
 {
     public class ApiResponse
     {
-        public bool? IsSuccess { get; set; }
-        public string? Message { get; set; }
-        public object? Data { get; set; } = Array.Empty<string>() ;
+        public bool IsSuccess { get; set; }
+        public string Message { get; set; }
+        public object Data { get; set; } = Array.Empty<string>() ;
     }
 }

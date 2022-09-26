@@ -3,8 +3,8 @@
     public class MovieType
     {
         public Guid MovieTypeID { get; set; }
-        public string? MovieTypeName { get; set; }
+        public string MovieTypeName { get; set; }
         //Relationship
-        public ICollection<MovieInformation>? MovieInformations { get; set; }
+        public ICollection<MovieInformation> MovieInformations { get; set; }
     }
 }

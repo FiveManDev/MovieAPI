@@ -2,7 +2,7 @@
 {
     public static class Security
     {
-        public static string Encode(string? text)
+        public static string Encode(string text)
         {
             return BCrypt.Net.BCrypt.HashPassword(text);
         }
