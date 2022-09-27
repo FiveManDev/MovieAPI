@@ -79,6 +79,33 @@ namespace MovieAPI.Controllers
 
             });
         }
+        [HttpGet]
+        public IActionResult TestGetWithParam( string name)
+        {
+            var a = new List<TestModel>();
+            a.Add(new TestModel
+            {
+                ID = 1,
+                Name = "khang"
+            });
+            a.Add(new TestModel
+            {
+                ID = 1,
+                Name = "khang"
+            });
+            a.Add(new TestModel
+            {
+                ID = 1,
+                Name = "khang"
+            });
+            return Ok(new ApiResponse
+            {
+                IsSuccess = false,
+                Message = name,
+                Data = a
+
+            });
+        }
         [HttpPost]
         public IActionResult TestPost( int ID, string Name)
         {
