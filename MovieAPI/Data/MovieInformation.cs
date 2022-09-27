@@ -11,6 +11,7 @@
         public string Director { get; set; }
         public string Language { get; set; }
         public string Subtitle { get; set; }
+        public DateTime ReleaseYear { get; set; }
         public DateTime PublicationTime { get; set; }
         public string CoverImage { get; set; }
         public string Age { get; set; }
@@ -22,8 +23,7 @@
         public User User { get; set; }
         public Guid ClassID { get; set; }
         public Classification Classification { get; set; }
-        public Guid MovieTypeID { get; set; }
-        public MovieType MovieType { get; set; }
+        public ICollection<MovieTypeInformation> MovieTypeInformations { get; set; }
         public Guid GenreID { get; set; }
         public Genre Genre { get; set; }
         public ICollection<Review> Reviews { get; set; }

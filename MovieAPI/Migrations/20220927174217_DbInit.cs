@@ -92,6 +92,7 @@ namespace MovieAPI.Migrations
                     Director = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Language = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Subtitle = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReleaseYear = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PublicationTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CoverImage = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Age = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -100,7 +101,6 @@ namespace MovieAPI.Migrations
                     Quality = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     ClassID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    MovieTypeID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     GenreID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
@@ -117,11 +117,6 @@ namespace MovieAPI.Migrations
                         principalTable: "Genre",
                         principalColumn: "GenreID");
                     table.ForeignKey(
-                        name: "PK_MovieInformation_One_To_One_MovieType",
-                        column: x => x.MovieTypeID,
-                        principalTable: "MovieType",
-                        principalColumn: "MovieTypeID");
-                    table.ForeignKey(
                         name: "PK_User_One_To_Many_MovieInformation",
                         column: x => x.UserID,
                         principalTable: "User",
@@ -135,7 +130,7 @@ namespace MovieAPI.Migrations
                 {
                     ProfileID = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "User_"),
-                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "5168b7e1-085f-45bd-be8b-cac77549aea9"),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "1b1d12ce-7ba5-40a8-9ffb-8249e21812d6"),
                     Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EMail = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -178,6 +173,28 @@ namespace MovieAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MovieTypeInformation",
+                columns: table => new
+                {
+                    MovieID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MovieTypeID = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MovieTypeInformation", x => new { x.MovieID, x.MovieTypeID });
+                    table.ForeignKey(
+                        name: "PK_MovieInformation_One_To_Many_MovieTypeInformation",
+                        column: x => x.MovieID,
+                        principalTable: "MovieInformation",
+                        principalColumn: "MovieID");
+                    table.ForeignKey(
+                        name: "PK_MovieType_One_To_Many_MovieTypeInformation",
+                        column: x => x.MovieTypeID,
+                        principalTable: "MovieType",
+                        principalColumn: "MovieTypeID");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Review",
                 columns: table => new
                 {
@@ -209,9 +226,9 @@ namespace MovieAPI.Migrations
                 columns: new[] { "AuthorizationID", "AuthorizationLevel", "AuthorizationName" },
                 values: new object[,]
                 {
-                    { new Guid("63e9479f-308e-4b40-809f-4a36197e7194"), 1, "Normal User" },
-                    { new Guid("9ab24764-9eca-4a5c-8dd3-6fbbf49c2b80"), 3, "Admin" },
-                    { new Guid("f4d7ab68-398d-441d-aec9-ab3f96fa5e40"), 2, "Film Poducer" }
+                    { new Guid("2932094d-2529-4913-8ca9-319be843e172"), 2, "Film Poducer" },
+                    { new Guid("6558f909-ca15-49dd-91bf-d73b6e4565d1"), 1, "Normal User" },
+                    { new Guid("a025a153-97ea-46d1-ba30-f468cb44f4f0"), 3, "Admin" }
                 });
 
             migrationBuilder.InsertData(
@@ -219,8 +236,8 @@ namespace MovieAPI.Migrations
                 columns: new[] { "ClassID", "ClassLevel", "ClassName", "ClassPrice" },
                 values: new object[,]
                 {
-                    { new Guid("37edf2c1-3cc3-4ed1-bf93-929f424736e6"), 1, "Basic", 0.0 },
-                    { new Guid("f1a39d16-eaa3-4022-8ce3-6ce7835a55b9"), 2, "Premium", 100.0 }
+                    { new Guid("51d085df-c6c5-47c5-bf94-3ee7ac5f0a75"), 2, "Premium", 100.0 },
+                    { new Guid("8a77b1fd-dee9-41e9-a3ee-0302b14fa77b"), 1, "Basic", 0.0 }
                 });
 
             migrationBuilder.InsertData(
@@ -228,23 +245,23 @@ namespace MovieAPI.Migrations
                 columns: new[] { "GenreID", "GenreName" },
                 values: new object[,]
                 {
-                    { new Guid("02b3e5a7-c72c-48f8-a9cd-b99df8355bca"), "Documentary" },
-                    { new Guid("1286a972-7aae-433e-87d9-14935a8ea7b2"), "Mucicals (Dance)" },
-                    { new Guid("3e25a731-d9f0-4ce3-9d42-00ee3b617c9d"), "Science Fiction" },
-                    { new Guid("41282142-2f66-43d5-91ec-9e86ad78e4b3"), "Tragedy" },
-                    { new Guid("415cc598-f313-4a3a-b0a8-355b69857fa7"), "Action" },
-                    { new Guid("4f478506-f01e-49a3-9837-e653bdf72124"), "War (Anti-war)" },
-                    { new Guid("4fe2d57d-6569-4acc-a97f-fe4ed7535510"), "Comedy" },
-                    { new Guid("62ade6a6-b2ef-4dfb-86df-d86a90ed15bd"), "Cartoon" },
-                    { new Guid("79387353-3d4b-4dc0-bc50-9f6161c8f88e"), "Documentary" },
-                    { new Guid("b0e32d17-8381-41b3-a978-a2f18a63c6f7"), "Crime & Gangster" },
-                    { new Guid("c027ce73-bd7b-4630-b17f-683f6160d69c"), "Romance" },
-                    { new Guid("dda59f1d-b580-492b-8547-58213874c323"), "Epics / Hisorical" },
-                    { new Guid("e8ff2466-d57f-481b-9419-d0072f1433cc"), "Sitcom" },
-                    { new Guid("eb538398-298f-4e3a-bdf1-efb2ac9d8e14"), "Drama Films" },
-                    { new Guid("edf567b4-c02e-4d76-861b-577b9bad2e3c"), "Adventure" },
-                    { new Guid("f21fce82-cc03-434e-ac26-95e26b7cfa78"), "Horror Films" },
-                    { new Guid("fc59c8fc-f627-44b6-b2ff-e40333675d3f"), "Westerns" }
+                    { new Guid("197594fa-a4f9-4f2a-84fa-7028d52e9200"), "Comedy" },
+                    { new Guid("2356ff0f-d132-4b35-a959-67ecfcfb32ce"), "Action" },
+                    { new Guid("23a5c7fd-7e2c-440f-bc3d-f7900676c0fd"), "Sitcom" },
+                    { new Guid("25f3db4c-dd66-4e95-a2b9-c9d4b85808c0"), "Romance" },
+                    { new Guid("417b95a0-ff35-4799-ae9d-a3d131aaeddc"), "Cartoon" },
+                    { new Guid("47256245-5f4e-419f-9495-b1960d1c8b56"), "Mucicals (Dance)" },
+                    { new Guid("476c9346-c09c-455e-93a4-b0874a36e8eb"), "Crime & Gangster" },
+                    { new Guid("5f2f1b35-311e-4bd9-b0b5-5e3452f50add"), "Westerns" },
+                    { new Guid("63da580f-031e-45bb-bf7b-cf5416ee0105"), "Adventure" },
+                    { new Guid("63f63d7c-d5b9-46ae-96b7-b6c2a5d00c39"), "War (Anti-war)" },
+                    { new Guid("7561b2ef-c258-4dca-b0b1-99cf461bba80"), "Drama Films" },
+                    { new Guid("98fd3476-9fbb-4c43-b43f-e674a9766093"), "Documentary" },
+                    { new Guid("bd7a8bcc-fcdf-433b-a756-d24ee794dd79"), "Horror Films" },
+                    { new Guid("cbc5754b-bac4-4679-9909-bfedc4d26dcd"), "Documentary" },
+                    { new Guid("cd8a26c7-61eb-4a84-ac7c-9f342ad8f735"), "Science Fiction" },
+                    { new Guid("db471aff-ea54-496a-836d-b95bb8099c1f"), "Epics / Hisorical" },
+                    { new Guid("fa7ad1c6-c4fb-4cf3-9466-a794d23efcac"), "Tragedy" }
                 });
 
             migrationBuilder.InsertData(
@@ -252,11 +269,11 @@ namespace MovieAPI.Migrations
                 columns: new[] { "MovieTypeID", "MovieTypeName" },
                 values: new object[,]
                 {
-                    { new Guid("1e69e16c-31fb-4059-8264-146416c0fc4b"), "TV Show" },
-                    { new Guid("4ad82e82-b4f6-4a9d-a94e-df3761c06c72"), "Short Video" },
-                    { new Guid("dde622e4-8c18-4215-a476-c7d4e4bf8c28"), "Exclusive movie" },
-                    { new Guid("de39405d-4235-4926-840b-760338cdb421"), "Movie Confession" },
-                    { new Guid("e4e84026-8a3d-4d8e-a47d-d6ee51060601"), "Movie Theater" }
+                    { new Guid("3f503564-20b1-4300-b19b-14c3ed1f529f"), "Short Video" },
+                    { new Guid("68a8910d-a771-492f-a952-954a49e4fd84"), "Movie Confession" },
+                    { new Guid("6b6d3e0b-189b-4fc4-bed7-1cbf3eaf5e24"), "TV Show" },
+                    { new Guid("b81c4808-b104-4c55-aae0-43bc563c77bf"), "Movie Theater" },
+                    { new Guid("d2982a45-4dbe-48da-b9e0-aa5cbe6e0687"), "Exclusive movie" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -270,14 +287,14 @@ namespace MovieAPI.Migrations
                 column: "GenreID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MovieInformation_MovieTypeID",
-                table: "MovieInformation",
-                column: "MovieTypeID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_MovieInformation_UserID",
                 table: "MovieInformation",
                 column: "UserID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MovieTypeInformation_MovieTypeID",
+                table: "MovieTypeInformation",
+                column: "MovieTypeID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Profile_ClassID",
@@ -315,6 +332,9 @@ namespace MovieAPI.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "MovieTypeInformation");
+
+            migrationBuilder.DropTable(
                 name: "Profile");
 
             migrationBuilder.DropTable(
@@ -324,6 +344,9 @@ namespace MovieAPI.Migrations
                 name: "Token");
 
             migrationBuilder.DropTable(
+                name: "MovieType");
+
+            migrationBuilder.DropTable(
                 name: "MovieInformation");
 
             migrationBuilder.DropTable(
@@ -331,9 +354,6 @@ namespace MovieAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "Genre");
-
-            migrationBuilder.DropTable(
-                name: "MovieType");
 
             migrationBuilder.DropTable(
                 name: "User");

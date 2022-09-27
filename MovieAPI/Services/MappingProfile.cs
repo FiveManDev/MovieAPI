@@ -20,10 +20,10 @@ namespace MovieAPI.Services
                     des => des.ClassName,
                     opt => opt.MapFrom(src => src.Classification.ClassName)
                 )
-                .ForMember(
-                    des => des.MovieTypeName,
-                    opt => opt.MapFrom(src => src.MovieType.MovieTypeName)
-                )
+                //.ForMember(
+                //    des => des.MovieTypeName,
+                //    opt => opt.MapFrom(src => src.MovieType.MovieTypeName)
+                //)
                 .ForMember(
                     des => des.GenreName,
                     opt => opt.MapFrom(src => src.Genre.GenreName)

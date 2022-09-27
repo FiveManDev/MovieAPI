@@ -5,6 +5,6 @@
         public Guid MovieTypeID { get; set; }
         public string MovieTypeName { get; set; }
         //Relationship
-        public ICollection<MovieInformation> MovieInformations { get; set; }
+        public ICollection<MovieTypeInformation> MovieTypeInformations { get; set; }
     }
 }

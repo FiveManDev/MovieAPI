@@ -33,7 +33,7 @@ namespace MovieAPI.Controllers
                 var movie = context.MovieInformations!
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
-                    .Include(movie => movie.MovieType)
+                    //.Include(movie => movie.MovieType)
                     .Include(movie => movie.Genre)
                     .FirstOrDefault(movie => movie.MovieID.ToString() == id);
                 if (movie != null)

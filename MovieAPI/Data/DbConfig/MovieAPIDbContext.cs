@@ -14,6 +14,7 @@ namespace MovieAPI.Data.DbConfig
         public DbSet<Authorization> Authorizations { get; set; }
         public DbSet<Classification> Classifications { get; set; }
         public DbSet<MovieInformation> MovieInformations { get; set; }
+        public DbSet<MovieTypeInformation> MovieTypeInformations { get; set; }
         public DbSet<MovieType> MovieTypes { get; set; }
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Review> Reviews { get; set; }
@@ -96,6 +97,7 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(mi => mi.Actor);
                 e.Property(mi => mi.Language);
                 e.Property(mi => mi.Subtitle);
+                e.Property(mi => mi.ReleaseYear);
                 e.Property(mi => mi.PublicationTime);
                 e.Property(mi => mi.CoverImage);
                 e.Property(mi => mi.Age);
@@ -116,11 +118,6 @@ namespace MovieAPI.Data.DbConfig
                     .HasForeignKey(mi => mi.GenreID)
                     .OnDelete(DeleteBehavior.NoAction)
                     .HasConstraintName("PK_MovieInformation_One_To_One_Genre");
-                e.HasOne(mi => mi.MovieType)
-                    .WithMany(mt => mt.MovieInformations)
-                    .HasForeignKey(mi => mi.MovieTypeID)
-                    .OnDelete(DeleteBehavior.NoAction)
-                    .HasConstraintName("PK_MovieInformation_One_To_One_MovieType");
             });
             modelBuilder.Entity<MovieType>(e =>
             {
@@ -128,6 +125,23 @@ namespace MovieAPI.Data.DbConfig
                 e.HasKey(mt => mt.MovieTypeID);
                 e.Property(mt => mt.MovieTypeID).HasDefaultValueSql("NEWID()");
                 e.Property(mt => mt.MovieTypeName);
+            });
+            modelBuilder.Entity<MovieTypeInformation>(e =>
+            {
+                e.ToTable("MovieTypeInformation");
+                e.HasKey(mti => new { mti.MovieID, mti.MovieTypeID });
+                e.Property(mti => mti.MovieID);
+                e.Property(mti => mti.MovieTypeID);
+                e.HasOne(mti => mti.MovieInformation)
+                    .WithMany(mi => mi.MovieTypeInformations)
+                    .HasForeignKey(mti => mti.MovieID)
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .HasConstraintName("PK_MovieInformation_One_To_Many_MovieTypeInformation");
+                e.HasOne(mti => mti.MovieType)
+                    .WithMany(mi => mi.MovieTypeInformations)
+                    .HasForeignKey(mti => mti.MovieTypeID)
+                    .OnDelete(DeleteBehavior.NoAction)
+                    .HasConstraintName("PK_MovieType_One_To_Many_MovieTypeInformation");
             });
             modelBuilder.Entity<Genre>(e =>
             {
