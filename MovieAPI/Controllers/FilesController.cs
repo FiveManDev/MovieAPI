@@ -24,7 +24,7 @@ namespace MovieAPI.Controllers
                 return BadRequest(new ApiResponse
                 {
                     IsSuccess = false,
-                    Data= "Something went wrong"
+                    Data = "Something went wrong"
                 });
             }
         }
@@ -32,7 +32,7 @@ namespace MovieAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllFiles()
         {
-            return Ok( await AmazonS3Bucket.GetAllFiles());
+            return Ok(await AmazonS3Bucket.GetAllFiles());
         }
 
         //[HttpGet]
@@ -52,5 +52,64 @@ namespace MovieAPI.Controllers
         //    await _s3Client.DeleteObjectAsync(bucketName, key);
         //    return NoContent();
         //}
+        [HttpGet]
+        public IActionResult TestGet()
+        {
+            var a = new List<TestModel>();
+            a.Add(new TestModel
+            {
+                ID = 1,
+                Name = "khang"
+            });
+            a.Add(new TestModel
+            {
+                ID = 1,
+                Name = "khang"
+            });
+            a.Add(new TestModel
+            {
+                ID = 1,
+                Name = "khang"
+            });
+            return Ok(new ApiResponse
+            {
+                IsSuccess = false,
+                Message = "khang",
+                Data = a
+
+            });
+        }
+        [HttpPost]
+        public IActionResult TestPost( int ID, string Name)
+        {
+            return Ok(new ApiResponse
+            {
+                IsSuccess = false,
+                Message = "khang",
+                Data = new TestModel
+                {
+                    ID = ID,
+                    Name = Name
+                }
+            }); ;
+        }
+        [HttpPost]
+        public IActionResult TestPostWithBody(TestModel model)
+        {
+            return Ok(new ApiResponse
+            {
+                IsSuccess = false,
+                Message = "khang",
+                Data = new TestModel
+                {
+                    ID = model.ID,
+                    Name = model.Name
+                }
+            }); ;
+        }
+    }
+    public class TestModel{
+        public int ID { get; set; }
+        public string Name { get; set; }
     }
 }
