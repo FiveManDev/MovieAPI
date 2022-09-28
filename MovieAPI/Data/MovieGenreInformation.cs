@@ -1,11 +1,11 @@
 ﻿namespace MovieAPI.Data
 {
-    public class MovieTypeInformation
+    public class MovieGenreInformation
     {
         public Guid MovieID { get; set; }
-        public Guid MovieTypeID { get; set; }
+        public Guid GenreID { get; set; }
         //Relationship
         public MovieInformation MovieInformation { get; set; }
-        public MovieType MovieType { get; set; }
+        public Genre Genre { get; set; }
     }
 }

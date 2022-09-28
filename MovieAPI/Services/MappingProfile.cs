@@ -24,10 +24,10 @@ namespace MovieAPI.Services
                 //    des => des.MovieTypeName,
                 //    opt => opt.MapFrom(src => src.MovieType.MovieTypeName)
                 //)
-                .ForMember(
-                    des => des.GenreName,
-                    opt => opt.MapFrom(src => src.Genre.GenreName)
-                )
+                //.ForMember(
+                //    des => des.GenreName,
+                //    opt => opt.MapFrom(src => src.Genre.GenreName)
+                //)
                 .ReverseMap();
 
             // Mapping (User, UserDTO)

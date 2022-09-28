@@ -12,8 +12,8 @@ using MovieAPI.Data.DbConfig;
 namespace MovieAPI.Migrations
 {
     [DbContext(typeof(MovieAPIDbContext))]
-    [Migration("20220927174217_DbInit")]
-    partial class DbInit
+    [Migration("20220928090825_AddMovieGenreInformationTable")]
+    partial class AddMovieGenreInformationTable
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -44,19 +44,19 @@ namespace MovieAPI.Migrations
                     b.HasData(
                         new
                         {
-                            AuthorizationID = new Guid("6558f909-ca15-49dd-91bf-d73b6e4565d1"),
+                            AuthorizationID = new Guid("3db2b025-a20c-460d-8810-36aa273229be"),
                             AuthorizationLevel = 1,
                             AuthorizationName = "Normal User"
                         },
                         new
                         {
-                            AuthorizationID = new Guid("2932094d-2529-4913-8ca9-319be843e172"),
+                            AuthorizationID = new Guid("eb09ecca-0779-4a06-80b3-3df64590d773"),
                             AuthorizationLevel = 2,
                             AuthorizationName = "Film Poducer"
                         },
                         new
                         {
-                            AuthorizationID = new Guid("a025a153-97ea-46d1-ba30-f468cb44f4f0"),
+                            AuthorizationID = new Guid("147aad7e-eefe-4b49-b637-7aa5dfaa38ab"),
                             AuthorizationLevel = 3,
                             AuthorizationName = "Admin"
                         });
@@ -85,14 +85,14 @@ namespace MovieAPI.Migrations
                     b.HasData(
                         new
                         {
-                            ClassID = new Guid("8a77b1fd-dee9-41e9-a3ee-0302b14fa77b"),
+                            ClassID = new Guid("e360722f-7405-4278-a4b2-17497036cef0"),
                             ClassLevel = 1,
                             ClassName = "Basic",
                             ClassPrice = 0.0
                         },
                         new
                         {
-                            ClassID = new Guid("51d085df-c6c5-47c5-bf94-3ee7ac5f0a75"),
+                            ClassID = new Guid("84251a89-a458-46f8-ba28-83df593ed2a9"),
                             ClassLevel = 2,
                             ClassName = "Premium",
                             ClassPrice = 100.0
@@ -116,89 +116,104 @@ namespace MovieAPI.Migrations
                     b.HasData(
                         new
                         {
-                            GenreID = new Guid("2356ff0f-d132-4b35-a959-67ecfcfb32ce"),
+                            GenreID = new Guid("9ad897ac-89d2-4ef0-be64-a7d58dfd5f8d"),
                             GenreName = "Action"
                         },
                         new
                         {
-                            GenreID = new Guid("63da580f-031e-45bb-bf7b-cf5416ee0105"),
+                            GenreID = new Guid("ac9c04ad-885e-4c73-b035-3e53b5e34284"),
                             GenreName = "Adventure"
                         },
                         new
                         {
-                            GenreID = new Guid("197594fa-a4f9-4f2a-84fa-7028d52e9200"),
+                            GenreID = new Guid("cd3e7605-81ac-4a97-9ca3-58ed958fb4b6"),
                             GenreName = "Comedy"
                         },
                         new
                         {
-                            GenreID = new Guid("417b95a0-ff35-4799-ae9d-a3d131aaeddc"),
+                            GenreID = new Guid("350af705-bd31-40ab-8b0f-3a064d4e3df9"),
                             GenreName = "Cartoon"
                         },
                         new
                         {
-                            GenreID = new Guid("476c9346-c09c-455e-93a4-b0874a36e8eb"),
+                            GenreID = new Guid("003a894b-36a8-4471-b906-dc627a6ce9c2"),
                             GenreName = "Crime & Gangster"
                         },
                         new
                         {
-                            GenreID = new Guid("7561b2ef-c258-4dca-b0b1-99cf461bba80"),
+                            GenreID = new Guid("8782bbd0-2f56-4fd4-89d6-081396549bfb"),
                             GenreName = "Drama Films"
                         },
                         new
                         {
-                            GenreID = new Guid("db471aff-ea54-496a-836d-b95bb8099c1f"),
+                            GenreID = new Guid("f2427dc3-481e-4e31-8f81-d06526bdaf58"),
                             GenreName = "Epics / Hisorical"
                         },
                         new
                         {
-                            GenreID = new Guid("bd7a8bcc-fcdf-433b-a756-d24ee794dd79"),
+                            GenreID = new Guid("800101db-589a-48b7-9126-24ee55465a9d"),
                             GenreName = "Horror Films"
                         },
                         new
                         {
-                            GenreID = new Guid("47256245-5f4e-419f-9495-b1960d1c8b56"),
+                            GenreID = new Guid("f8b486a9-6c27-4d34-be35-2f9a0cfa9999"),
                             GenreName = "Mucicals (Dance)"
                         },
                         new
                         {
-                            GenreID = new Guid("cd8a26c7-61eb-4a84-ac7c-9f342ad8f735"),
+                            GenreID = new Guid("32ab71e0-a75d-4d39-8d5d-e66525477d48"),
                             GenreName = "Science Fiction"
                         },
                         new
                         {
-                            GenreID = new Guid("63f63d7c-d5b9-46ae-96b7-b6c2a5d00c39"),
+                            GenreID = new Guid("ca44f559-803f-4daf-b024-9c870c62318e"),
                             GenreName = "War (Anti-war)"
                         },
                         new
                         {
-                            GenreID = new Guid("5f2f1b35-311e-4bd9-b0b5-5e3452f50add"),
+                            GenreID = new Guid("295c36f4-54d7-4183-b6b1-450054047200"),
                             GenreName = "Westerns"
                         },
                         new
                         {
-                            GenreID = new Guid("25f3db4c-dd66-4e95-a2b9-c9d4b85808c0"),
+                            GenreID = new Guid("22849f83-a5b4-49eb-93ed-e2d942254521"),
                             GenreName = "Romance"
                         },
                         new
                         {
-                            GenreID = new Guid("fa7ad1c6-c4fb-4cf3-9466-a794d23efcac"),
+                            GenreID = new Guid("6ac68c37-0ae3-478f-9c22-9cf22fa3db1c"),
                             GenreName = "Tragedy"
                         },
                         new
                         {
-                            GenreID = new Guid("cbc5754b-bac4-4679-9909-bfedc4d26dcd"),
+                            GenreID = new Guid("15f25288-4ff7-4bcf-b9ae-11fc91074863"),
                             GenreName = "Documentary"
                         },
                         new
                         {
-                            GenreID = new Guid("23a5c7fd-7e2c-440f-bc3d-f7900676c0fd"),
+                            GenreID = new Guid("63da4fe0-de4d-4c8e-b8c8-ec3202c20038"),
                             GenreName = "Sitcom"
                         },
                         new
                         {
-                            GenreID = new Guid("98fd3476-9fbb-4c43-b43f-e674a9766093"),
+                            GenreID = new Guid("f75bf4cb-64a6-4d25-af4d-712da6e3e9bf"),
                             GenreName = "Documentary"
                         });
+                });
+
+            modelBuilder.Entity("MovieAPI.Data.MovieGenreInformation", b =>
+                {
+                    b.Property<Guid>("MovieID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("GenreID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("MovieID", "GenreID");
+
+                    b.HasIndex("GenreID");
+
+                    b.ToTable("MovieGenreInformation", (string)null);
                 });
 
             modelBuilder.Entity("MovieAPI.Data.MovieInformation", b =>
@@ -229,14 +244,14 @@ namespace MovieAPI.Migrations
                     b.Property<string>("Director")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("GenreID")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Language")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MovieName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("MovieTypeID")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("MovieURL")
                         .HasColumnType("nvarchar(max)");
@@ -266,7 +281,7 @@ namespace MovieAPI.Migrations
 
                     b.HasIndex("ClassID");
 
-                    b.HasIndex("GenreID");
+                    b.HasIndex("MovieTypeID");
 
                     b.HasIndex("UserID");
 
@@ -290,44 +305,29 @@ namespace MovieAPI.Migrations
                     b.HasData(
                         new
                         {
-                            MovieTypeID = new Guid("3f503564-20b1-4300-b19b-14c3ed1f529f"),
+                            MovieTypeID = new Guid("6a213e3d-6121-490e-87fc-747ba820491e"),
                             MovieTypeName = "Short Video"
                         },
                         new
                         {
-                            MovieTypeID = new Guid("b81c4808-b104-4c55-aae0-43bc563c77bf"),
+                            MovieTypeID = new Guid("ebfd7919-7210-4c54-bb76-fa37dcc191a3"),
                             MovieTypeName = "Movie Theater"
                         },
                         new
                         {
-                            MovieTypeID = new Guid("6b6d3e0b-189b-4fc4-bed7-1cbf3eaf5e24"),
+                            MovieTypeID = new Guid("99b8a1ab-1302-4443-9ef7-95fae52b4938"),
                             MovieTypeName = "TV Show"
                         },
                         new
                         {
-                            MovieTypeID = new Guid("68a8910d-a771-492f-a952-954a49e4fd84"),
+                            MovieTypeID = new Guid("7cb6ef5f-648a-477a-9172-5172ff4f7868"),
                             MovieTypeName = "Movie Confession"
                         },
                         new
                         {
-                            MovieTypeID = new Guid("d2982a45-4dbe-48da-b9e0-aa5cbe6e0687"),
+                            MovieTypeID = new Guid("c956e62b-5709-4a4a-85b0-6a3452b48abf"),
                             MovieTypeName = "Exclusive movie"
                         });
-                });
-
-            modelBuilder.Entity("MovieAPI.Data.MovieTypeInformation", b =>
-                {
-                    b.Property<Guid>("MovieID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("MovieTypeID")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("MovieID", "MovieTypeID");
-
-                    b.HasIndex("MovieTypeID");
-
-                    b.ToTable("MovieTypeInformation", (string)null);
                 });
 
             modelBuilder.Entity("MovieAPI.Data.Profile", b =>
@@ -343,7 +343,7 @@ namespace MovieAPI.Migrations
                     b.Property<Guid>("ClassID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("EMail")
+                    b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstName")
@@ -354,7 +354,7 @@ namespace MovieAPI.Migrations
                     b.Property<string>("LastName")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("1b1d12ce-7ba5-40a8-9ffb-8249e21812d6");
+                        .HasDefaultValue("e4ae11e0-a9ad-4753-9616-d5f569e2b19e");
 
                     b.Property<Guid>("UserID")
                         .HasColumnType("uniqueidentifier");
@@ -452,6 +452,27 @@ namespace MovieAPI.Migrations
                     b.ToTable("User", (string)null);
                 });
 
+            modelBuilder.Entity("MovieAPI.Data.MovieGenreInformation", b =>
+                {
+                    b.HasOne("MovieAPI.Data.Genre", "Genre")
+                        .WithMany("MovieGenreInformations")
+                        .HasForeignKey("GenreID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("PK_Genre_One_To_Many_MovieGenreInformation");
+
+                    b.HasOne("MovieAPI.Data.MovieInformation", "MovieInformation")
+                        .WithMany("MovieGenreInformations")
+                        .HasForeignKey("MovieID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("PK_MovieInformation_One_To_Many_MovieGenreInformation");
+
+                    b.Navigation("Genre");
+
+                    b.Navigation("MovieInformation");
+                });
+
             modelBuilder.Entity("MovieAPI.Data.MovieInformation", b =>
                 {
                     b.HasOne("MovieAPI.Data.Classification", "Classification")
@@ -461,12 +482,12 @@ namespace MovieAPI.Migrations
                         .IsRequired()
                         .HasConstraintName("PK_MovieInformation_Many_To_One_Classification");
 
-                    b.HasOne("MovieAPI.Data.Genre", "Genre")
+                    b.HasOne("MovieAPI.Data.MovieType", "MovieType")
                         .WithMany("MovieInformations")
-                        .HasForeignKey("GenreID")
+                        .HasForeignKey("MovieTypeID")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("PK_MovieInformation_One_To_One_Genre");
+                        .HasConstraintName("PK_MovieInformation_One_To_One_MovieType");
 
                     b.HasOne("MovieAPI.Data.User", "User")
                         .WithMany("MovieInformations")
@@ -477,30 +498,9 @@ namespace MovieAPI.Migrations
 
                     b.Navigation("Classification");
 
-                    b.Navigation("Genre");
+                    b.Navigation("MovieType");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("MovieAPI.Data.MovieTypeInformation", b =>
-                {
-                    b.HasOne("MovieAPI.Data.MovieInformation", "MovieInformation")
-                        .WithMany("MovieTypeInformations")
-                        .HasForeignKey("MovieID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("PK_MovieInformation_One_To_Many_MovieTypeInformation");
-
-                    b.HasOne("MovieAPI.Data.MovieType", "MovieType")
-                        .WithMany("MovieTypeInformations")
-                        .HasForeignKey("MovieTypeID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("PK_MovieType_One_To_Many_MovieTypeInformation");
-
-                    b.Navigation("MovieInformation");
-
-                    b.Navigation("MovieType");
                 });
 
             modelBuilder.Entity("MovieAPI.Data.Profile", b =>
@@ -583,19 +583,19 @@ namespace MovieAPI.Migrations
 
             modelBuilder.Entity("MovieAPI.Data.Genre", b =>
                 {
-                    b.Navigation("MovieInformations");
+                    b.Navigation("MovieGenreInformations");
                 });
 
             modelBuilder.Entity("MovieAPI.Data.MovieInformation", b =>
                 {
-                    b.Navigation("MovieTypeInformations");
+                    b.Navigation("MovieGenreInformations");
 
                     b.Navigation("Reviews");
                 });
 
             modelBuilder.Entity("MovieAPI.Data.MovieType", b =>
                 {
-                    b.Navigation("MovieTypeInformations");
+                    b.Navigation("MovieInformations");
                 });
 
             modelBuilder.Entity("MovieAPI.Data.User", b =>

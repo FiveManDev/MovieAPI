@@ -23,9 +23,9 @@
         public User User { get; set; }
         public Guid ClassID { get; set; }
         public Classification Classification { get; set; }
-        public ICollection<MovieTypeInformation> MovieTypeInformations { get; set; }
-        public Guid GenreID { get; set; }
-        public Genre Genre { get; set; }
+        public Guid MovieTypeID { get; set; }
+        public MovieType MovieType { get; set; }
+        public ICollection<MovieGenreInformation> MovieGenreInformations { get; set; }
         public ICollection<Review> Reviews { get; set; }
     }
 }

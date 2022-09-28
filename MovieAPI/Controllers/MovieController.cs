@@ -34,7 +34,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     //.Include(movie => movie.MovieType)
-                    .Include(movie => movie.Genre)
+                    //.Include(movie => movie.Genre)
                     .FirstOrDefault(movie => movie.MovieID.ToString() == id);
                 if (movie != null)
                 {

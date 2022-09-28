@@ -105,7 +105,7 @@ namespace MovieAPI.Controllers
                     Guid classID = context.Classifications!.Where(s => s.ClassLevel == minClassLevel).First().ClassID;
                     var profile = new Data.Profile
                     {
-                        EMail = Email,
+                        Email = Email,
                         UserID = userId,
                         ClassID = classID
                     };
