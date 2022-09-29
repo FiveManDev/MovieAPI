@@ -7,6 +7,7 @@ using System.Reflection;
 using MovieAPI.Helpers;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using MovieAPI.Models.DTO;
 
 namespace MovieAPI.Controllers
 {

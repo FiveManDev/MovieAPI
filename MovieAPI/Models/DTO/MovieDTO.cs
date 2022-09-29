@@ -1,6 +1,6 @@
 ﻿using MovieAPI.Data;
 
-namespace MovieAPI.Models
+namespace MovieAPI.Models.DTO
 {
     public class MovieDTO
     {

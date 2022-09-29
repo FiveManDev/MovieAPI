@@ -7,10 +7,12 @@ using MovieAPI.Data;
 using MovieAPI.Data.DbConfig;
 using MovieAPI.Helpers;
 using MovieAPI.Models;
+using MovieAPI.Models.DTO;
 using MovieAPI.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Text;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace MovieAPI.Controllers
 {
@@ -29,9 +31,9 @@ namespace MovieAPI.Controllers
         }
 
         // Get user information
-        [HttpGet]
+        [HttpGet("id", Name="GetUserInformation")]
         [Authorize]
-        public IActionResult GetUserInformation()
+        public IActionResult GetUserInformation(string id)
         {
             try
             {
@@ -76,21 +78,20 @@ namespace MovieAPI.Controllers
         }
 
         [HttpPost]
-        public ActionResult CreateUser(string UserName, string Password, string Email)
+        public ActionResult CreateUser([FromBody] CreateUserDTO createUserDTO)
         {
-            Guid userId = new Guid();
             try
             {
                 using var context = new MovieAPIDbContext();
-                var userCheck = context.Users!.FirstOrDefault(user => user.UserName == UserName);
+                var userCheck = context.Users!.FirstOrDefault(user => user.UserName == createUserDTO. UserName);
                 if (userCheck == null)
                 {
                     int minAuthorizationLevel = context.Authorizations!.Min(auth => auth.AuthorizationLevel);
-                    Guid auth = context.Authorizations!.Where(s => s.AuthorizationLevel == minAuthorizationLevel).First().AuthorizationID;
+                    Guid auth = context.Authorizations!.FirstOrDefault(s => s.AuthorizationLevel == minAuthorizationLevel).AuthorizationID;
                     var user = new User
                     {
-                        UserName = UserName,
-                        Password = Password,
+                        UserName = createUserDTO.UserName,
+                        Password = createUserDTO.Password,
                         AuthorizationID = auth
                     };
                     context.Users!.Add(user);
@@ -100,12 +101,12 @@ namespace MovieAPI.Controllers
                         throw new Exception("Create new data failed");
                     }
                     logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("User"));
-                    userId = user.UserID;
+                    Guid userId = user.UserID;
                     int minClassLevel = context.Classifications!.Min(auth => auth.ClassLevel);
-                    Guid classID = context.Classifications!.Where(s => s.ClassLevel == minClassLevel).First().ClassID;
+                    Guid classID = context.Classifications!.FirstOrDefault(s => s.ClassLevel == minClassLevel).ClassID;
                     var profile = new Data.Profile
                     {
-                        Email = Email,
+                        Email = createUserDTO.Email,
                         UserID = userId,
                         ClassID = classID
                     };
@@ -117,11 +118,15 @@ namespace MovieAPI.Controllers
                     }
                     logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Profile"));
 
-                    return Ok(new ApiResponse
-                    {
-                        IsSuccess = true,
-                        Message = "Create Account Success",
-                    });
+                    return CreatedAtRoute(
+                       "GetUserInformation",
+                       new { id = user.UserID.ToString() },
+                       new ApiResponse
+                       {
+                           IsSuccess = true,
+                           Message = "Create Account Success",
+                           Data = _mapper.Map<User, UserDTO>(user)
+                        });
                 }
                 else
                 {

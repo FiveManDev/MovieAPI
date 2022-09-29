@@ -1,5 +1,6 @@
 ﻿using MovieAPI.Data;
-using MovieAPI.Models;
+using MovieAPI.Models.DTO;
+
 namespace MovieAPI.Services
 {
     public class MappingProfile : AutoMapper.Profile
