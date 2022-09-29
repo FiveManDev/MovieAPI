@@ -1,6 +1,5 @@
-﻿using Amazon.S3.Model;
-using Amazon.S3;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 using MovieAPI.Models;
 using MovieAPI.Services;
 
@@ -52,6 +51,7 @@ namespace MovieAPI.Controllers
         //    await _s3Client.DeleteObjectAsync(bucketName, key);
         //    return NoContent();
         //}
+        [EnableQuery()]
         [HttpGet]
         public IActionResult TestGet()
         {
@@ -71,13 +71,7 @@ namespace MovieAPI.Controllers
                 ID = 1,
                 Name = "khang"
             });
-            return Ok(new ApiResponse
-            {
-                IsSuccess = false,
-                Message = "khang",
-                Data = a
-
-            });
+            return Ok(a) ; 
         }
         [HttpGet]
         public IActionResult TestGetWithParam( string name)

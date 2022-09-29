@@ -1,10 +1,11 @@
 using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MovieAPI.Data.DbConfig;
-using MovieAPI.Helpers;
 using MovieAPI.Services;
+using MovieAPI.Services.SignalR;
 using Serilog;
 using System.Text;
 
@@ -47,6 +48,19 @@ builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
 builder.Services.AddAWSService<IAmazonS3>();
 // Add auto mapper services
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+// Add services SignalR
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder => builder
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .SetIsOriginAllowed(origin => true));
+});
+builder.Services.AddSignalR();
+// Add services OData
+builder.Services.AddControllers().AddOData(opt=>
+                                  opt.Select().Filter().Expand().OrderBy().Count().SetMaxTop(100));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -55,12 +69,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
-
+// Config App Use SignalR
+app.UseRouting();
 app.UseAuthentication();
-
 app.UseAuthorization();
+app.UseCors("CorsPolicy");
+app.UseEndpoints(endpoints => {
+    endpoints.MapControllers();
+    endpoints.MapHub<ChatHub>("/chat");
+    endpoints.MapHub<ReviewHub>("/review");
+});
+app.UseHttpsRedirection();
 
 app.MapControllers();
 app.Run();
