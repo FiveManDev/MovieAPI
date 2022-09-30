@@ -18,6 +18,7 @@ namespace MovieAPI.Data.DbConfig
         public DbSet<MovieType> MovieTypes { get; set; }
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<Ticket> Tickets { get; set; }
         #endregion
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -170,43 +171,83 @@ namespace MovieAPI.Data.DbConfig
                     .HasConstraintName("PK_MovieInformation_One_To_Many_Review")
                     .OnDelete(DeleteBehavior.NoAction);
             });
+            modelBuilder.Entity<Review>(e =>
+            {
+                e.ToTable("Review");
+                e.HasKey(r => r.ReviewID);
+                e.Property(r => r.ReviewID).HasDefaultValueSql("NEWID()");
+                e.Property(r => r.Title);
+                e.Property(r => r.ReviewContent);
+                e.Property(r => r.Rating);
+                e.Property(r => r.ReviewTime);
+                e.HasOne(r => r.User)
+                    .WithMany(user => user.Reviews)
+                    .HasForeignKey(r => r.UserID)
+                    .HasConstraintName("PK_User_One_To_Many_Review")
+                    .OnDelete(DeleteBehavior.NoAction);
+                e.HasOne(r => r.MovieInformation)
+                    .WithMany(movie => movie.Reviews)
+                    .HasForeignKey(r => r.MovieID)
+                    .HasConstraintName("PK_MovieInformation_One_To_Many_Review")
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+            modelBuilder.Entity<Ticket>(e =>
+            {
+                e.ToTable("Ticket");
+                e.HasKey(ticket => ticket.TicketID);
+                e.Property(ticket => ticket.TicketID).HasDefaultValueSql("NEWID()");
+                e.Property(ticket => ticket.GroupID).HasDefaultValueSql("NEWID()");
+                e.Property(ticket => ticket.IsFromAdmin);
+                e.Property(ticket => ticket.MessageContent);
+                e.Property(ticket => ticket.MessageTime);
+                e.HasOne(ticket => ticket.Sender)
+                    .WithMany(user => user.TicketForSenders)
+                    .HasForeignKey(ticket => ticket.SenderId)
+                    .HasConstraintName("PK_User_One_To_Many_TicketForSender")
+                    .OnDelete(DeleteBehavior.NoAction);
+                e.HasOne(ticket => ticket.Receiver)
+                   .WithMany(user => user.TicketForReceivers)
+                   .HasForeignKey(ticket => ticket.ReceiverId)
+                   .HasConstraintName("PK_User_One_To_Many_TicketForReceiver")
+                   .OnDelete(DeleteBehavior.NoAction);
+            });
             #endregion
             #region DataInit
-            modelBuilder.Entity<Authorization>().HasData(
-                new Authorization { AuthorizationID = Guid.NewGuid(), AuthorizationName = "Normal User", AuthorizationLevel = 1 },
-                new Authorization { AuthorizationID = Guid.NewGuid(), AuthorizationName = "Film Poducer", AuthorizationLevel = 2 },
-                new Authorization { AuthorizationID = Guid.NewGuid(), AuthorizationName = "Admin", AuthorizationLevel = 3 }
-                );
-            modelBuilder.Entity<Classification>().HasData(
-                new Classification { ClassID = Guid.NewGuid(), ClassName = "Basic", ClassLevel = 1, ClassPrice = 0 },
-                new Classification { ClassID = Guid.NewGuid(), ClassName = "Premium", ClassLevel = 2, ClassPrice = 100 }
-               );
-            modelBuilder.Entity<Genre>().HasData(
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Action" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Adventure" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Comedy" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Cartoon" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Crime & Gangster" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Drama Films" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Epics / Hisorical" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Horror Films" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Mucicals (Dance)" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Science Fiction" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "War (Anti-war)" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Westerns" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Romance" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Tragedy" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Documentary" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Sitcom" },
-                new Genre { GenreID = Guid.NewGuid(), GenreName = "Documentary" }
-              );
-            modelBuilder.Entity<MovieType>().HasData(
-                new MovieType { MovieTypeID = Guid.NewGuid(), MovieTypeName = "Short Video" },
-                new MovieType { MovieTypeID = Guid.NewGuid(), MovieTypeName = "Movie Theater" },
-                new MovieType { MovieTypeID = Guid.NewGuid(), MovieTypeName = "TV Show" },
-                new MovieType { MovieTypeID = Guid.NewGuid(), MovieTypeName = "Movie Confession" },
-                new MovieType { MovieTypeID = Guid.NewGuid(), MovieTypeName = "Exclusive movie" }
-               );
+            //modelBuilder.Entity<Authorization>().HasData(
+            //    new Authorization { AuthorizationID = Guid.NewGuid(), AuthorizationName = "Normal User", AuthorizationLevel = 1 },
+            //    new Authorization { AuthorizationID = Guid.NewGuid(), AuthorizationName = "Film Poducer", AuthorizationLevel = 2 },
+            //    new Authorization { AuthorizationID = Guid.NewGuid(), AuthorizationName = "Admin", AuthorizationLevel = 3 }
+            //    );
+            //modelBuilder.Entity<Classification>().HasData(
+            //    new Classification { ClassID = Guid.NewGuid(), ClassName = "Basic", ClassLevel = 1, ClassPrice = 0 },
+            //    new Classification { ClassID = Guid.NewGuid(), ClassName = "Premium", ClassLevel = 2, ClassPrice = 100 }
+            //   );
+            //modelBuilder.Entity<Genre>().HasData(
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Action" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Adventure" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Comedy" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Cartoon" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Crime & Gangster" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Drama Films" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Epics / Hisorical" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Horror Films" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Mucicals (Dance)" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Science Fiction" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "War (Anti-war)" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Westerns" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Romance" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Tragedy" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Documentary" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Sitcom" },
+            //    new Genre { GenreID = Guid.NewGuid(), GenreName = "Documentary" }
+            //  );
+            //modelBuilder.Entity<MovieType>().HasData(
+            //    new MovieType { MovieTypeID = Guid.NewGuid(), MovieTypeName = "Short Video" },
+            //    new MovieType { MovieTypeID = Guid.NewGuid(), MovieTypeName = "Movie Theater" },
+            //    new MovieType { MovieTypeID = Guid.NewGuid(), MovieTypeName = "TV Show" },
+            //    new MovieType { MovieTypeID = Guid.NewGuid(), MovieTypeName = "Movie Confession" },
+            //    new MovieType { MovieTypeID = Guid.NewGuid(), MovieTypeName = "Exclusive movie" }
+            //   );
             #endregion
 
         }

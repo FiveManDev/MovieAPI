@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MovieAPI.Data;
@@ -31,7 +32,7 @@ namespace MovieAPI.Controllers
         }
 
         // Get user information
-        [HttpGet("id", Name="GetUserInformation")]
+        [HttpGet("", Name="GetUserInformation")]
         [Authorize]
         public IActionResult GetUserInformation(string id)
         {
@@ -118,15 +119,11 @@ namespace MovieAPI.Controllers
                     }
                     logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Profile"));
 
-                    return CreatedAtRoute(
-                       "GetUserInformation",
-                       new { id = user.UserID.ToString() },
-                       new ApiResponse
-                       {
-                           IsSuccess = true,
-                           Message = "Create Account Success",
-                           Data = _mapper.Map<User, UserDTO>(user)
-                        });
+                    return Ok(new ApiResponse
+                    {
+                        IsSuccess = true,
+                        Message = "Create Account Success"
+                    });
                 }
                 else
                 {
@@ -147,14 +144,19 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpPost]
-        public IActionResult Login(string UserName, string Password)
+        public ActionResult Login([FromBody] LoginUserDTO loginUserDTO)
         {
             try
             {
                 using var context = new MovieAPIDbContext();
-                var user = context.Users!.FirstOrDefault(user => user.UserName == UserName
-                                                         && user.Password == Password);
+                var user = context.Users
+                    .Include(user => user.Profile)
+                    .Include(user => user.Authorization)
+                    .FirstOrDefault(user => user.UserName == loginUserDTO.UserName
+                                                         && user.Password == loginUserDTO.Password);
+
                 if (user != null)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", 1));
@@ -174,18 +176,20 @@ namespace MovieAPI.Controllers
                     context.Tokens?.Add(tokenData);
                     context.SaveChanges();
                     logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Token"));
+
                     return Ok(new ApiResponse
                     {
                         IsSuccess = true,
                         Message = "Login Success",
                         Data = Token
+
                     });
                 }
                 else
                 {
                     return NotFound(new ApiResponse
                     {
-                        IsSuccess = true,
+                        IsSuccess = false,
                         Message = "Account Not Found"
                     });
                 }
@@ -200,6 +204,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpPost]
         public IActionResult RefreshToken(string AccessToken, string RefreshToken)
         {
@@ -281,6 +286,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpGet]
         [Authorize]
         public IActionResult DecodeToken()

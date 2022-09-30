@@ -8,6 +8,7 @@ using MovieAPI.Helpers;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using MovieAPI.Models.DTO;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace MovieAPI.Controllers
 {
@@ -70,6 +71,7 @@ namespace MovieAPI.Controllers
 
         // Get all genre of movie
         [HttpGet]
+        [EnableQuery()]
         public IActionResult GetAllGenreOfMovie()
         {
             try

@@ -12,6 +12,8 @@
         public Token Token { get; set; }
         public ICollection<MovieInformation> MovieInformations { get; set; }
         public ICollection<Review> Reviews { get; set; }
+        public ICollection<Ticket> TicketForSenders { get; set; }
+        public ICollection<Ticket> TicketForReceivers { get; set; }
 
     }
 }
