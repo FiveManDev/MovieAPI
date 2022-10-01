@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MovieAPI.Migrations
 {
-    public partial class AddHashPasswordToUserTable : Migration
+    public partial class ChangeColumnNameReleaseTime : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -93,7 +93,7 @@ namespace MovieAPI.Migrations
                     Director = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Language = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Subtitle = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ReleaseYear = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReleaseTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PublicationTime = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CoverImage = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Age = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -131,7 +131,7 @@ namespace MovieAPI.Migrations
                 {
                     ProfileID = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWID()"),
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "User_"),
-                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "a76ccb94-4ae9-4130-913a-3940898cba9b"),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "f78b08b6-541e-44d3-9510-cfe813d40ce5"),
                     Avatar = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),

@@ -11,7 +11,7 @@
         public string Director { get; set; }
         public string Language { get; set; }
         public string Subtitle { get; set; }
-        public DateTime ReleaseYear { get; set; }
+        public DateTime ReleaseTime { get; set; }
         public DateTime PublicationTime { get; set; }
         public string CoverImage { get; set; }
         public string Age { get; set; }

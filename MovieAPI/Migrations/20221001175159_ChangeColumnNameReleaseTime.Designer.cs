@@ -12,8 +12,8 @@ using MovieAPI.Data.DbConfig;
 namespace MovieAPI.Migrations
 {
     [DbContext(typeof(MovieAPIDbContext))]
-    [Migration("20221001152454_AddHashPasswordToUserTable")]
-    partial class AddHashPasswordToUserTable
+    [Migration("20221001175159_ChangeColumnNameReleaseTime")]
+    partial class ChangeColumnNameReleaseTime
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -139,7 +139,7 @@ namespace MovieAPI.Migrations
                     b.Property<string>("Quality")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("ReleaseYear")
+                    b.Property<DateTime>("ReleaseTime")
                         .HasColumnType("datetime2");
 
                     b.Property<float>("RunningTime")
@@ -204,7 +204,7 @@ namespace MovieAPI.Migrations
                     b.Property<string>("LastName")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("a76ccb94-4ae9-4130-913a-3940898cba9b");
+                        .HasDefaultValue("f78b08b6-541e-44d3-9510-cfe813d40ce5");
 
                     b.Property<Guid>("UserID")
                         .HasColumnType("uniqueidentifier");

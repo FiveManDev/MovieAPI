@@ -9,6 +9,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using MovieAPI.Models.DTO;
 using Microsoft.AspNetCore.OData.Query;
+using System.Collections.Generic;
 
 namespace MovieAPI.Controllers
 {
@@ -32,10 +33,10 @@ namespace MovieAPI.Controllers
             try
             {
                 using var context = new MovieAPIDbContext();
-                var movie = context.MovieInformations!
+                var movie = context.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
-                    //.Include(movie => movie.MovieType)
+                    .Include(movie => movie.MovieType)
                     //.Include(movie => movie.Genre)
                     .FirstOrDefault(movie => movie.MovieID.ToString() == id);
                 if (movie != null)
@@ -45,7 +46,7 @@ namespace MovieAPI.Controllers
                     return Ok(new ApiResponse
                     {
                         IsSuccess = true,
-                        Message = "Create Account Success",
+                        Message = "Get A Movie Information By Id Success",
                         Data = movieDTO
                     });
                 }
@@ -71,7 +72,6 @@ namespace MovieAPI.Controllers
 
         // Get all genre of movie
         [HttpGet]
-        [EnableQuery()]
         public IActionResult GetAllGenreOfMovie()
         {
             try
@@ -109,6 +109,49 @@ namespace MovieAPI.Controllers
                 });
             }
         }
-    
+
+        // Get the list of 6 latest released movies
+        [HttpGet]
+        public IActionResult GetTopLastestReleaseMovies(int topNum)
+        {
+            try
+            {
+                if (topNum <= 0) topNum = 6;
+                using var context = new MovieAPIDbContext();
+                var movies = context.MovieInformations
+                    .Include(movie => movie.User.Profile)
+                    .Include(movie => movie.Classification)
+                    .Include(movie => movie.MovieType)
+                    //.Include(movie => movie.Genre)
+                    .OrderBy(movie => movie.ReleaseTime)
+                    .Take(topNum).ToList();
+
+                if (movies == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Movies Not Found"
+                    });
+                }
+
+                var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Data = movieDTOs
+                });
+          
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Movies Not Found"
+                });
+            }
+        }
     }
 }

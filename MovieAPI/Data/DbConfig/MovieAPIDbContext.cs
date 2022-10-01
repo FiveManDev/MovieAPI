@@ -99,7 +99,7 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(mi => mi.Actor);
                 e.Property(mi => mi.Language);
                 e.Property(mi => mi.Subtitle);
-                e.Property(mi => mi.ReleaseYear);
+                e.Property(mi => mi.ReleaseTime);
                 e.Property(mi => mi.PublicationTime);
                 e.Property(mi => mi.CoverImage);
                 e.Property(mi => mi.Age);
