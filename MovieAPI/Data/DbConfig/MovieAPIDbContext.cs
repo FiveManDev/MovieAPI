@@ -29,7 +29,8 @@ namespace MovieAPI.Data.DbConfig
                 e.HasKey(user => user.UserID);
                 e.Property(user => user.UserID).HasDefaultValueSql("NEWID()").IsRequired();
                 e.Property(user => user.UserName).IsRequired();
-                e.Property(user => user.Password).IsRequired();
+                e.Property(user => user.PasswordHash).IsRequired();
+                e.Property(user => user.PasswordSalt).IsRequired();
                 //e.Property(user => user.AuthorizationID).HasConversion<string>();
                 e.HasOne(user => user.Authorization)
                     .WithMany(auth => auth.User)

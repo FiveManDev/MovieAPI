@@ -10,6 +10,7 @@ using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
 using MovieAPI.Services;
+using MovieWebApp.Utility.Extension;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Text;
@@ -79,20 +80,22 @@ namespace MovieAPI.Controllers
         }
 
         [HttpPost]
-        public ActionResult CreateUser([FromBody] CreateUserDTO createUserDTO)
+        public ActionResult CreateUser([FromBody] CreateUserRequestDTO createUserDTO)
         {
             try
             {
                 using var context = new MovieAPIDbContext();
-                var userCheck = context.Users!.FirstOrDefault(user => user.UserName == createUserDTO. UserName);
+                var userCheck = context.Users!.FirstOrDefault(user => user.UserName == createUserDTO.UserName);
                 if (userCheck == null)
                 {
                     int minAuthorizationLevel = context.Authorizations!.Min(auth => auth.AuthorizationLevel);
                     Guid auth = context.Authorizations!.FirstOrDefault(s => s.AuthorizationLevel == minAuthorizationLevel).AuthorizationID;
+                    HashPassword.CreatePasswordHash(createUserDTO.Password, out byte[] passwordHash, out byte[] passwordSalt);
                     var user = new User
                     {
                         UserName = createUserDTO.UserName,
-                        Password = createUserDTO.Password,
+                        PasswordHash = passwordHash,
+                        PasswordSalt = passwordSalt,
                         AuthorizationID = auth
                     };
                     context.Users!.Add(user);
@@ -146,7 +149,7 @@ namespace MovieAPI.Controllers
         }
 
         [HttpPost]
-        public ActionResult Login([FromBody] LoginUserDTO loginUserDTO)
+        public ActionResult Login([FromBody] LoginDTO loginUserDTO)
         {
             try
             {
@@ -154,10 +157,18 @@ namespace MovieAPI.Controllers
                 var user = context.Users
                     .Include(user => user.Profile)
                     .Include(user => user.Authorization)
-                    .FirstOrDefault(user => user.UserName == loginUserDTO.UserName
-                                                         && user.Password == loginUserDTO.Password);
+                    .FirstOrDefault(user => user.UserName == loginUserDTO.UserName);
 
-                if (user != null)
+                if (user == null)
+                {
+                    return Ok(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Login Failed! Incorrect username or password!",
+                    });
+                }
+
+                if (HashPassword.VerifyPasswordHash(loginUserDTO.Password, user.PasswordHash, user.PasswordSalt))
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", 1));
                     var TokensExist = context.Tokens!.FirstOrDefault(token => token.UserID == user.UserID);
@@ -190,7 +201,7 @@ namespace MovieAPI.Controllers
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
-                        Message = "Account Not Found"
+                        Message = "Login Failed! Incorrect username or password!"
                     });
                 }
             }

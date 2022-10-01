@@ -202,7 +202,7 @@ namespace MovieAPI.Migrations
                     b.Property<string>("LastName")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("4be997ee-0208-4c02-a55a-47d1fdb4d27b");
+                        .HasDefaultValue("a76ccb94-4ae9-4130-913a-3940898cba9b");
 
                     b.Property<Guid>("UserID")
                         .HasColumnType("uniqueidentifier");
@@ -321,9 +321,13 @@ namespace MovieAPI.Migrations
                     b.Property<Guid>("AuthorizationID")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Password")
+                    b.Property<byte[]>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<byte[]>("PasswordSalt")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
 
                     b.Property<string>("UserName")
                         .IsRequired()

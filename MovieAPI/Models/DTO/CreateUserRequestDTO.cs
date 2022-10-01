@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MovieAPI.Models.DTO
 {
-    public class CreateUserDTO
+    public class CreateUserRequestDTO
     {
         [Required]
         [StringLength(maximumLength: 20, MinimumLength = 6)]
