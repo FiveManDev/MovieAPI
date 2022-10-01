@@ -46,7 +46,6 @@ namespace MovieAPI.Controllers
                     return Ok(new ApiResponse
                     {
                         IsSuccess = true,
-                        Message = "Get A Movie Information By Id Success",
                         Data = movieDTO
                     });
                 }
@@ -110,13 +109,14 @@ namespace MovieAPI.Controllers
             }
         }
 
-        // Get the list of 6 latest released movies
+        // Get the list of 6 latest release movies
         [HttpGet]
-        public IActionResult GetTopLastestReleaseMovies(int topNum)
+        public IActionResult GetTopLastestReleaseMovies(int top)
         {
             try
             {
-                if (topNum <= 0) topNum = 6;
+                if (top <= 0) top = 6;
+                if (top > 10) top = 10;
                 using var context = new MovieAPIDbContext();
                 var movies = context.MovieInformations
                     .Include(movie => movie.User.Profile)
@@ -124,7 +124,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.MovieType)
                     //.Include(movie => movie.Genre)
                     .OrderBy(movie => movie.ReleaseTime)
-                    .Take(topNum).ToList();
+                    .Take(top).ToList();
 
                 if (movies == null)
                 {
@@ -143,6 +143,175 @@ namespace MovieAPI.Controllers
                     Data = movieDTOs
                 });
           
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Movies Not Found"
+                });
+            }
+        }
+
+        // Get the list of 6 latest publication movies
+        [HttpGet]
+        public IActionResult GetTopLastestPublicationMovies(int top)
+        {
+            try
+            {
+                if (top <= 0) top = 6;
+                if (top > 10) top = 10;
+                using var context = new MovieAPIDbContext();
+                var movies = context.MovieInformations
+                    .Include(movie => movie.User.Profile)
+                    .Include(movie => movie.Classification)
+                    .Include(movie => movie.MovieType)
+                    //.Include(movie => movie.Genre)
+                    .OrderBy(movie => movie.PublicationTime)
+                    .Take(top).ToList();
+
+                if (movies == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Movies Not Found"
+                    });
+                }
+
+                var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Data = movieDTOs
+                });
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Movies Not Found"
+                });
+            }
+        }
+
+        // Get Movies Based On Type
+        [HttpGet]
+        public IActionResult GetMoviesBasedOnType(string type, int top)
+        {
+            try
+            {
+                if (top <= 0) top = 6;
+                if (top > 10) top = 10;
+                using var context = new MovieAPIDbContext();
+                var typeId = context.MovieTypes.FirstOrDefault(movieType => movieType.MovieTypeName.Equals(type))?.MovieTypeID; 
+
+                var movies = context.MovieInformations
+                    .Include(movie => movie.User.Profile)
+                    .Include(movie => movie.Classification)
+                    .Include(movie => movie.MovieType)
+                    //.Include(movie => movie.Genre)
+                    .Where(movie => movie.MovieTypeID == typeId)
+                    .Take(top).ToList();
+
+                if (movies == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Movies Not Found"
+                    });
+                }
+
+                var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = movieDTOs.Count() == 0 ? "Empty!" : "",
+                    Data = movieDTOs
+                });
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Movies Not Found"
+                });
+            }
+        }
+
+        // Get Movies Based On Search Text
+        [HttpGet]
+        public IActionResult GetMoviesBasedOnSearchText(string searchText, int top)
+        {
+            try
+            {
+                if (top <= 0) top = 6;
+                if (top > 10) top = 10;
+                using var context = new MovieAPIDbContext();
+                var movies = context.MovieInformations
+                    .Include(movie => movie.User.Profile)
+                    .Include(movie => movie.Classification)
+                    .Include(movie => movie.MovieType)
+                    //.Include(movie => movie.Genre)
+                    .Where(movie => movie.MovieName.Contains(searchText)
+                        || movie.Description.Contains(searchText)
+                        || movie.Actor.Contains(searchText)
+                        || movie.Director.Contains(searchText))
+                    .Take(top).ToList();
+
+                if (movies == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Movies Not Found"
+                    });
+                }
+
+                var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = movieDTOs.Count() == 0 ? "Empty!" : "",
+                    Data = movieDTOs
+                });
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Movies Not Found"
+                });
+            }
+        }
+
+        // Total number of movies
+        [HttpGet]
+        public IActionResult GetTotalNumberOfMovies()
+        {
+            try
+            {
+                using var context = new MovieAPIDbContext();
+                var count = context.MovieInformations.Count();
+
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = count == 0 ? "Empty!" : "",
+                    Data = count
+                });
+
             }
             catch (Exception ex)
             {
