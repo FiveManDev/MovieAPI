@@ -10,7 +10,7 @@ namespace MovieAPI.Models.DTO
         public string Avatar { get; set; }
         public string EMail { get; set; }
         //Relationship
-        public Guid UserID { get; set; }
+        //public Guid UserID { get; set; }
         public Guid ClassID { get; set; }
 
     }

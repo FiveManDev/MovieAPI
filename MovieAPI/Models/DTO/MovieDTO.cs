@@ -20,6 +20,7 @@ namespace MovieAPI.Models.DTO
         public string MovieURL { get; set; }
         public float RunningTime { get; set; }
         public string Quality { get; set; }
+        public int Rating { get; set; } = 0;
         //Relationship
         // Profile user (author)
         public string FirstNameAuthor { get; set; }

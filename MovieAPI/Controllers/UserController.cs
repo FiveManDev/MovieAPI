@@ -55,7 +55,6 @@ namespace MovieAPI.Controllers
                     return Ok(new ApiResponse
                     {
                         IsSuccess = true,
-                        Message = "Get All Genre Of Movie Success",
                         Data = userDTO
                     });
                 }
