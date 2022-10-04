@@ -12,6 +12,7 @@ namespace MovieAPI.Models.DTO
         [StringLength(maximumLength: 20, MinimumLength = 6)]
         public string Password { get; set; }
         [Required]
+        [EmailAddress]
         public string Email { get; set; }
     }
 }

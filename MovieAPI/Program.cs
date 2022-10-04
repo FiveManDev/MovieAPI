@@ -2,6 +2,7 @@ using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MovieAPI.Data.DbConfig;
 using MovieAPI.Services;
@@ -21,7 +22,10 @@ builder.Logging.AddSerilog(logger);
 builder.Services.AddControllers();
 //Add config database
 AppSettings.ConnectionString = builder.Configuration.GetConnectionString("MovieAPIConnection");
-builder.Services.AddDbContext<MovieAPIDbContext>();
+builder.Services.AddDbContext<MovieAPIDbContext>(
+    //options => options.UseSqlServer(AppSettings.ConnectionString)
+);
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

@@ -20,6 +20,12 @@ namespace MovieAPI.Data.DbConfig
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
         #endregion
+
+        public MovieAPIDbContext(DbContextOptions<MovieAPIDbContext> options) : base(options)
+        {
+
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             #region DataCongig
@@ -254,7 +260,7 @@ namespace MovieAPI.Data.DbConfig
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(AppSettings.ConnectionString!);
+            optionsBuilder.UseSqlServer(AppSettings.ConnectionString);
         }
     }
 }

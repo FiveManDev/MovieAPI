@@ -20,10 +20,12 @@ namespace MovieAPI.Controllers
     {
         private readonly ILogger<UserController> logger;
         private readonly IMapper _mapper;
-        public MovieController(ILogger<UserController> iLogger, IMapper mapper)
+        private readonly MovieAPIDbContext _db;
+        public MovieController(ILogger<UserController> iLogger, IMapper mapper, MovieAPIDbContext db)
         {
             logger = iLogger;
             _mapper = mapper;
+            _db = db;
         }
 
         // Get a movie information by id
@@ -32,8 +34,8 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                using var context = new MovieAPIDbContext();
-                var movie = context.MovieInformations
+                
+                var movie = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
@@ -42,6 +44,7 @@ namespace MovieAPI.Controllers
                 if (movie != null)
                 {
                     var movieDTO = _mapper.Map<MovieInformation, MovieDTO>(movie);
+                    movieDTO = calculateRating(movieDTO);
                     logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("Profile", 1));
                     return Ok(new ApiResponse
                     {
@@ -75,8 +78,8 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                using var context = new MovieAPIDbContext();
-                IEnumerable<Genre> genres = context.Genres.ToList();
+                
+                IEnumerable<Genre> genres = _db.Genres.ToList();
                 if (genres != null)
                 {
                     List<String> genresName = genres.Select(genre => genre.GenreName).ToList();
@@ -117,8 +120,8 @@ namespace MovieAPI.Controllers
             {
                 if (top <= 0) top = 6;
                 if (top > 10) top = 10;
-                using var context = new MovieAPIDbContext();
-                var movies = context.MovieInformations
+                
+                var movies = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
@@ -136,6 +139,10 @@ namespace MovieAPI.Controllers
                 }
 
                 var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+                movieDTOs.ForEach(movieDTO =>
+                {
+                    movieDTO = calculateRating(movieDTO);
+                });
 
                 return Ok(new ApiResponse
                 {
@@ -162,8 +169,8 @@ namespace MovieAPI.Controllers
             {
                 if (top <= 0) top = 6;
                 if (top > 10) top = 10;
-                using var context = new MovieAPIDbContext();
-                var movies = context.MovieInformations
+                
+                var movies = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
@@ -181,7 +188,10 @@ namespace MovieAPI.Controllers
                 }
 
                 var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
-
+                movieDTOs.ForEach(movieDTO =>
+                {
+                    movieDTO = calculateRating(movieDTO);
+                });
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -207,10 +217,10 @@ namespace MovieAPI.Controllers
             {
                 if (top <= 0) top = 6;
                 if (top > 10) top = 10;
-                using var context = new MovieAPIDbContext();
-                var typeId = context.MovieTypes.FirstOrDefault(movieType => movieType.MovieTypeName.Equals(type))?.MovieTypeID; 
+                
+                var typeId = _db.MovieTypes.FirstOrDefault(movieType => movieType.MovieTypeName.Equals(type))?.MovieTypeID; 
 
-                var movies = context.MovieInformations
+                var movies = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
@@ -228,6 +238,10 @@ namespace MovieAPI.Controllers
                 }
 
                 var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+                movieDTOs.ForEach(movieDTO =>
+                {
+                    movieDTO = calculateRating(movieDTO);
+                });
 
                 return Ok(new ApiResponse
                 {
@@ -255,8 +269,8 @@ namespace MovieAPI.Controllers
             {
                 if (top <= 0) top = 6;
                 if (top > 10) top = 10;
-                using var context = new MovieAPIDbContext();
-                var movies = context.MovieInformations
+                
+                var movies = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
@@ -277,6 +291,10 @@ namespace MovieAPI.Controllers
                 }
 
                 var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+                movieDTOs.ForEach(movieDTO =>
+                {
+                    movieDTO = calculateRating(movieDTO);
+                });
 
                 return Ok(new ApiResponse
                 {
@@ -302,8 +320,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                using var context = new MovieAPIDbContext();
-                var count = context.MovieInformations.Count();
+                var count = _db.MovieInformations.Count();
 
                 return Ok(new ApiResponse
                 {
@@ -322,5 +339,18 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public MovieDTO calculateRating(MovieDTO movieDTO)
+        {
+            // calculate rating
+            var rating = _db.Reviews.Where(review => review.MovieID.Equals(movieDTO.MovieID)).Sum(review => review.Rating);
+            var count = _db.Reviews.Where(review => review.MovieID.Equals(movieDTO.MovieID)).Count();
+            
+            movieDTO.Rating = count == 0 ? 0 : (float)(rating / count);
+
+            return movieDTO;
+        }
+       
     }
 }
