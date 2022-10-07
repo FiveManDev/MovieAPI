@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MovieAPI.Models;
 using System;
 using static MovieAPI.Models.EnumObject;
-namespace MovieAPI.Services
+namespace MovieAPI.Services.AWS
 {
 
     public static class AmazonS3Bucket
@@ -79,7 +79,7 @@ namespace MovieAPI.Services
                     BucketName = bucket,
                     Key = s.Key,
                     Expires = DateTime.UtcNow.AddYears(1),
-                    
+
                 };
                 return new S3ObjectDto()
                 {
@@ -106,7 +106,7 @@ namespace MovieAPI.Services
                     prefix = "OtherFile";
                     break;
             }
-            var hostKey = prefix+"\\"+key;
+            var hostKey = prefix + "\\" + key;
             var bucket = AppSettings.AWSS3BucketName;
             var bucketExists = await s3Client.DoesS3BucketExistAsync(bucket);
             if (!bucketExists)

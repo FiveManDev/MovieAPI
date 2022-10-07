@@ -4,29 +4,16 @@ namespace MovieAPI.Services.MomoPayment
 {
     public class MomoConnection
     {
-        private static string partnerCode;
-        private static string accessKey;
-        private static string serectkey;
-        private static string endpoint = "https://test-payment.momo.vn/gw_payment/transactionProcessor";
-        private static string returnUrl = "https://localhost:7251/process/payment/confirm";
-        private static string notifyurl = "https://localhost:7251/process/payment/save";
-        public static void MomoConfig(String PartnerCode, String AccessKey, String Serectkey)
+        private static string partnerCode = AppSettings.PartnerCode;
+        private static string accessKey = AppSettings.MomoAccessKey;
+        private static string serectkey = AppSettings.MomoSerectkey;
+        private static string endpoint = AppSettings.Endpoint;
+        private static string returnUrl = AppSettings.ReturnUrl;
+        private static string notifyurl = AppSettings.NotifyUrl;
+        public static async Task<string> MomoResponse(string OrderInfo, string Amount, string ExtraData)
         {
-            partnerCode = PartnerCode;
-            accessKey = AccessKey;
-            serectkey = Serectkey;
-        }
-        public static String MomoResponse(String OrderInfo, String Amount, String ExtraData)
-        {
-            Console.WriteLine("OrderInfo: " + OrderInfo);
-            Console.WriteLine("Amount: " + Amount);
-            Console.WriteLine("ExtraData: " + ExtraData);
-
             string orderid = DateTime.Now.Ticks.ToString();
             string requestId = DateTime.Now.Ticks.ToString();
-
-
-            //Before sign HMAC SHA256 signature
             string rawHash = "partnerCode=" +
                 partnerCode + "&accessKey=" +
                 accessKey + "&requestId=" +
@@ -37,39 +24,29 @@ namespace MovieAPI.Services.MomoPayment
                 returnUrl + "&notifyUrl=" +
                 notifyurl + "&extraData=" +
                 ExtraData;
-
-
             MoMoSecurity crypto = new MoMoSecurity();
-            //sign signature SHA256
             string signature = crypto.signSHA256(rawHash, serectkey);
-
-            //build body json request
-            JObject message = new JObject
+            var message = new
             {
-                { "partnerCode", partnerCode },
-                { "accessKey", accessKey },
-                { "requestId", requestId },
-                { "amount", Amount },
-                { "orderId", orderid },
-                { "orderInfo", OrderInfo },
-                { "returnUrl", returnUrl },
-                { "notifyUrl", notifyurl },
-                { "extraData", ExtraData },
-                { "requestType", "captureMoMoWallet" },
-                { "signature", signature }
-
+                accessKey = accessKey,
+                partnerCode = partnerCode,
+                requestType = "captureMoMoWallet",
+                notifyUrl = notifyurl,
+                returnUrl = returnUrl,
+                orderId = orderid,
+                amount = Amount,
+                orderInfo = OrderInfo,
+                requestId = requestId,
+                extraData = ExtraData,
+                signature = signature
             };
-
-            string responseFromMomo = PaymentRequest.SendPaymentRequest(endpoint, message.ToString());
-            Console.WriteLine(responseFromMomo);
+            var responseFromMomo = await PaymentRequest.SendPaymentRequest(endpoint, message);
             JObject jmessage = JObject.Parse(responseFromMomo);
-
             if (jmessage.GetValue("payUrl") != null)
             {
                 return jmessage.GetValue("payUrl").ToString();
             }
             return "/";
-
         }
     }
 }

@@ -1,54 +1,36 @@
-﻿using System.Net;
-using System.Text;
-
+﻿using AutoMapper;
+using MovieAPI.Controllers;
+using MovieAPI.Data;
+using MovieAPI.Helpers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Net.Http.Headers;
+using System.Reflection;
+using System.Text.Json.Nodes;
 namespace MovieAPI.Services.MomoPayment
 {
     public class PaymentRequest
     {
-        public PaymentRequest()
-        {
-        }
-        public static string SendPaymentRequest(string endpoint, string postJsonString)
-        {
+        public static async Task<string> SendPaymentRequest(string endpoint, object postJsonObject)
+        { 
             try
             {
-                HttpWebRequest httpWReq = (HttpWebRequest)WebRequest.Create(endpoint);
-
-                var postData = postJsonString;
-
-                var data = Encoding.UTF8.GetBytes(postData);
-
-                httpWReq.ProtocolVersion = HttpVersion.Version11;
-                httpWReq.Method = "POST";
-                httpWReq.ContentType = "application/json";
-
-                httpWReq.ContentLength = data.Length;
-                httpWReq.ReadWriteTimeout = 30000;
-                httpWReq.Timeout = 15000;
-                Stream stream = httpWReq.GetRequestStream();
-                stream.Write(data, 0, data.Length);
-                stream.Close();
-
-                HttpWebResponse response = (HttpWebResponse)httpWReq.GetResponse();
-
-                string jsonresponse = "";
-
-                using (var reader = new StreamReader(response.GetResponseStream()))
-                {
-
-                    string temp = null;
-                    while ((temp = reader.ReadLine()) != null)
-                    {
-                        jsonresponse += temp;
-                    }
-                }
-                return jsonresponse;
-
+                using HttpClient client = new HttpClient();
+                var json = JsonConvert.SerializeObject(postJsonObject);
+                var jsonRequest = JsonValue.Parse(json);
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var result = client.PostAsJsonAsync(endpoint, jsonRequest).Result;
+                var streamRead = await result.Content.ReadAsStringAsync();
+                var jsonResult = JObject.Parse(streamRead);
+                return jsonResult.ToString();
             }
-            catch (WebException e)
+            catch (Exception ex)
             {
-                return e.Message;
+                Logger<PaymentRequest> a = null;
+                a.LogInformation(ex.ToString());
+                return null;
             }
+            
         }
 
     }

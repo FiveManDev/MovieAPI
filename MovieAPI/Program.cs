@@ -65,6 +65,19 @@ builder.Services.AddSignalR();
 // Add services OData
 builder.Services.AddControllers().AddOData(opt=>
                                   opt.Select().Filter().Expand().OrderBy().Count().SetMaxTop(100));
+//Add services mail
+AppSettings.Mail = builder.Configuration["MailConnectionInformation:Mail"];
+AppSettings.MailTile = builder.Configuration["MailConnectionInformation:MailTile"];
+AppSettings.MailAppPassword = builder.Configuration["MailConnectionInformation:MailAppPassword"];
+AppSettings.Host = builder.Configuration["MailConnectionInformation:Host"];
+AppSettings.Port = builder.Configuration["MailConnectionInformation:Port"];
+//Add services Momo
+AppSettings.PartnerCode = builder.Configuration["MomoConnectionInformation:PartnerCode"];
+AppSettings.MomoAccessKey = builder.Configuration["MomoConnectionInformation:AccessKey"];
+AppSettings.MomoSerectkey = builder.Configuration["MomoConnectionInformation:Serectkey"];
+AppSettings.Endpoint = builder.Configuration["MomoConnectionInformation:Endpoint"];
+AppSettings.ReturnUrl = builder.Configuration["MomoConnectionInformation:ReturnUrl"];
+AppSettings.NotifyUrl = builder.Configuration["MomoConnectionInformation:Notifyurl"];
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

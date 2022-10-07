@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using MovieAPI.Models;
-using MovieAPI.Services;
+using MovieAPI.Services.AWS;
+using MovieAPI.Services.Mail;
+using MovieAPI.Services.MomoPayment;
 
 namespace MovieAPI.Controllers
 {
@@ -127,6 +129,23 @@ namespace MovieAPI.Controllers
                     Name = model.Name
                 }
             }); ;
+        }
+        [HttpGet]
+        public IActionResult TestSendMail()
+        {
+            MailModel mailModel = new MailModel();
+            mailModel.EmailTo = "hoangkhang12789@gmail.com";
+            mailModel.Subject = "Khang";
+            mailModel.Body = "Khang";
+            MailService.SendMail(mailModel);
+            return Ok(mailModel);
+        }
+         [HttpGet]
+        public async Task<string> TestPayment()
+        {
+            var amount = 1000;
+            return await MomoConnection.MomoResponse("Khang", amount.ToString(), "sss");
+
         }
     }
     public class TestModel{
