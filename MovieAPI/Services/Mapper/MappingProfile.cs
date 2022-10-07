@@ -25,10 +25,10 @@ namespace MovieAPI.Services.Mapper
                     des => des.MovieTypeName,
                     opt => opt.MapFrom(src => src.MovieType.MovieTypeName)
                 )
-                //.ForMember(
-                //    des => des.GenreName,
-                //    opt => opt.MapFrom(src => src.Genre.GenreName)
-                //)
+                .ForMember(
+                    des => des.Genres,
+                    opt => opt.MapFrom(src => src.MovieGenreInformations.Select(movieGenreInfo => movieGenreInfo.GenreID))
+                )
                 .ReverseMap();
 
             // Mapping (User, UserDTO)
@@ -41,7 +41,7 @@ namespace MovieAPI.Services.Mapper
 
             // Mapping (Authorization, AuthorizationDTO)
             CreateMap<Authorization, AuthorizationDTO>()
-                .ReverseMap();
+               .ReverseMap();
         }
     }
 }
