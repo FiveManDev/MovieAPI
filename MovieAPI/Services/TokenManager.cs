@@ -25,7 +25,7 @@ namespace MovieAPI.Services
                     new Claim(nameof(user.UserID), user.UserID.ToString()),
                     new Claim(nameof(user.AuthorizationID), user.AuthorizationID.ToString()),
                     new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Role, user.Authorization?.AuthorizationName),
+                    new Claim(ClaimTypes.Role, user.Authorization?.AuthorizationName??""),
                 }),
                 Expires = expires,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(secretKeyBytes), SecurityAlgorithms.HmacSha256Signature)

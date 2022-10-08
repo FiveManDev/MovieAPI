@@ -10,5 +10,10 @@ namespace MovieAPI.Models
             Video,
             OtherFile = 2
         };
+        public enum RandomType
+        {
+            Number,
+            String,
+        };
     }
 }

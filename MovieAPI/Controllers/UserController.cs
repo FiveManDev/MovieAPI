@@ -10,6 +10,8 @@ using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
 using MovieAPI.Services;
+using MovieAPI.Services.Mail;
+using MovieWebApp.Models;
 using MovieWebApp.Utility.Extension;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
@@ -37,19 +39,20 @@ namespace MovieAPI.Controllers
         // Get user information
         [Authorize]
         [HttpGet]
-        public IActionResult GetUserInformation([Required]string id)
+        public IActionResult GetUserInformation([Required] string id)
         {
             try
             {
                 string userId = User.Claims.FirstOrDefault(claim => claim.Type == "UserID").Value;
-                if (!userId.Equals(id)){
+                if (!userId.Equals(id))
+                {
                     return StatusCode(401, new ApiResponse
                     {
                         IsSuccess = false,
                         Message = "You are not allowed to get user information"
                     });
                 }
-                
+
                 var user = _db.Users
                     .Include(user => user.Profile)
                     .Include(user => user.Authorization)
@@ -59,7 +62,7 @@ namespace MovieAPI.Controllers
                 {
 
                     var userDTO = _mapper.Map<User, UserDTO>(user);
-                   
+
                     logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", 1));
                     return Ok(new ApiResponse
                     {
@@ -92,7 +95,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                
+
                 var userCheck = _db.Users!.FirstOrDefault(user => user.UserName == createUserDTO.UserName);
                 if (userCheck == null)
                 {
@@ -118,7 +121,7 @@ namespace MovieAPI.Controllers
                     Guid classID = _db.Classifications!.FirstOrDefault(s => s.ClassLevel == minClassLevel).ClassID;
                     var profile = new Data.Profile
                     {
-                        Email = createUserDTO.Email,
+                        Email = createUserDTO.Email.ToLower(),
                         UserID = userId,
                         ClassID = classID
                     };
@@ -161,7 +164,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                
+
                 var user = _db.Users
                     .Include(user => user.Profile)
                     .Include(user => user.Authorization)
@@ -315,7 +318,7 @@ namespace MovieAPI.Controllers
             };
             try
             {
-                
+
                 var tokenInVerification = jwtTokenHandler.ValidateToken(tokenModel.AccessToken, tokenValidateParam, out var validatedToken);
                 if (validatedToken is JwtSecurityToken jwtSecurityToken)
                 {
@@ -353,7 +356,7 @@ namespace MovieAPI.Controllers
                 _db.Tokens!.Update(storedToken);
                 _db.SaveChanges();
                 logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PutDataSuccess("Token", 1));
-                
+
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -376,18 +379,103 @@ namespace MovieAPI.Controllers
             }
         }
 
-        [HttpGet]
-        [Authorize]
-        public IActionResult DecodeToken()
+        [HttpPost]
+        public IActionResult LoginWithService(ServiceLoginModel serviceLoginModel)
         {
-            var token = Request.Headers["Authorization"];
-            string userRole = TokenManager.DecodeToken(token).AuthorizationID!;
-            return Ok(new ApiResponse
+            try
             {
-                IsSuccess = true,
-                Message = "",
-                Data = userRole
-            });
+                var existProfile = _db.Profiles.SingleOrDefault(pro => pro.Email == serviceLoginModel.Mail.ToLower());
+                if (existProfile != null)
+                {
+                    var existuser = _db.Users.SingleOrDefault(user => user.UserID == existProfile.UserID);
+                    var Token = TokenManager.GenerateAccessToken(existuser);
+                    return Ok(Token);
+                }
+                int minAuthorizationLevel = _db.Authorizations!.Min(auth => auth.AuthorizationLevel);
+                Guid auth = _db.Authorizations!.FirstOrDefault(s => s.AuthorizationLevel == minAuthorizationLevel).AuthorizationID;
+                HashPassword.CreatePasswordHash(serviceLoginModel.Id, out byte[] passwordHash, out byte[] passwordSalt);
+                var user = new User
+                {
+                    UserName = serviceLoginModel.Id+"Google",
+                    PasswordHash = passwordHash,
+                    PasswordSalt = passwordSalt,
+                    AuthorizationID = auth
+                };
+                _db.Users!.Add(user);
+                int returnValue = _db.SaveChanges();
+                if (returnValue == 0)
+                {
+                    throw new Exception("Create new data failed");
+                }
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("User"));
+                Guid userId = user.UserID;
+                int minClassLevel = _db.Classifications!.Min(auth => auth.ClassLevel);
+                Guid classID = _db.Classifications!.FirstOrDefault(s => s.ClassLevel == minClassLevel).ClassID;
+                var profile = new Data.Profile
+                {
+                    Email = serviceLoginModel.Mail.ToLower(),
+                    UserID = userId,
+                    ClassID = classID,
+                    FirstName = serviceLoginModel.FirstName,
+                    LastName = serviceLoginModel.LastName
+                };
+                _db.Profiles!.Add(profile);
+                var checkProfileSave = _db.SaveChanges();
+                if (checkProfileSave == 0)
+                {
+                    throw new Exception("Create new data failed");
+                }
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Profile"));
+
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Create Account Success"
+                });
+            }
+            catch
+            {
+                return BadRequest(new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Login failed"
+                });
+            }
+        }
+        [HttpPost]
+        public IActionResult ConfirmEmail([FromBody] string email)
+        {
+            try
+            {
+                var code = RandomText.RandomByNumberOfCharacters(6,EnumObject.RandomType.Number);
+                var mailName = email.Substring(0,email.IndexOf("@"));
+                var mailModel = new MailModel
+                {
+                    EmailTo = email,
+                    Subject = "Confirm your email address",
+                    Body = $"Welcome {mailName.ToLower()}!" +
+                    $"<br/><br/>" +
+                    $"Thanks for signing up with {AppSettings.MailTile}!" +
+                    $"<br/><b>{code}</b> is your {AppSettings.MailTile} verification." +
+                    $" <br/>" +
+                    $"Have fun coding, and don't hesitate to contact us with your feedback."
+                };
+                MailService.SendMail(mailModel);
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Send code to mail success",
+                    Data = code
+                });
+            }
+            catch
+            {
+                return BadRequest(new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Send code to maill failed"
+                });
+            }
         }
     }
 }

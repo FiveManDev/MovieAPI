@@ -1,5 +1,7 @@
-﻿using System.Security.Cryptography;
+﻿
+using System.Security.Cryptography;
 using System.Text;
+using static MovieAPI.Models.EnumObject;
 
 namespace MovieAPI.Helpers
 {
@@ -14,9 +16,18 @@ namespace MovieAPI.Helpers
                 return Convert.ToBase64String(random);
             }
         }
-        public static string RandomByNumberOfCharacters(int length)
+        public static string RandomByNumberOfCharacters(int length, RandomType randomType)
         {
-            const string valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890~!@$%^&*?><";
+            string valid = "";
+            switch (randomType)
+            {
+                case RandomType.Number:
+                    valid = "1234567890";
+                    break;
+                case RandomType.String:
+                    valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890~!@$%^&*?><";
+                    break;
+            };
             StringBuilder res = new StringBuilder();
             Random rnd = new Random();
             while (0 < length--)
