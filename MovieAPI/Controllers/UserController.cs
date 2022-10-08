@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MovieAPI.Data;
@@ -39,7 +38,8 @@ namespace MovieAPI.Controllers
         // Get user information
         [Authorize]
         [HttpGet]
-        public IActionResult GetUserInformation([Required] string id)
+        [ActionName("user-information")]
+        public IActionResult GetUserInformation([Required]string id)
         {
             try
             {
@@ -58,19 +58,7 @@ namespace MovieAPI.Controllers
                     .Include(user => user.Authorization)
                     .FirstOrDefault(user => user.UserID.ToString() == id);
 
-                if (user != null)
-                {
-
-                    var userDTO = _mapper.Map<User, UserDTO>(user);
-
-                    logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", 1));
-                    return Ok(new ApiResponse
-                    {
-                        IsSuccess = true,
-                        Data = userDTO
-                    });
-                }
-                else
+                if (user == null)
                 {
                     return NotFound(new ApiResponse
                     {
@@ -78,6 +66,14 @@ namespace MovieAPI.Controllers
                         Message = "Cannot Get User Information!"
                     });
                 }
+                var userDTO = _mapper.Map<User, UserDTO>(user);
+
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", 1));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Data = userDTO
+                });
             }
             catch (Exception ex)
             {
@@ -95,51 +91,8 @@ namespace MovieAPI.Controllers
         {
             try
             {
-
                 var userCheck = _db.Users!.FirstOrDefault(user => user.UserName == createUserDTO.UserName);
-                if (userCheck == null)
-                {
-                    int minAuthorizationLevel = _db.Authorizations!.Min(auth => auth.AuthorizationLevel);
-                    Guid auth = _db.Authorizations!.FirstOrDefault(s => s.AuthorizationLevel == minAuthorizationLevel).AuthorizationID;
-                    HashPassword.CreatePasswordHash(createUserDTO.Password, out byte[] passwordHash, out byte[] passwordSalt);
-                    var user = new User
-                    {
-                        UserName = createUserDTO.UserName,
-                        PasswordHash = passwordHash,
-                        PasswordSalt = passwordSalt,
-                        AuthorizationID = auth
-                    };
-                    _db.Users!.Add(user);
-                    int returnValue = _db.SaveChanges();
-                    if (returnValue == 0)
-                    {
-                        throw new Exception("Create new data failed");
-                    }
-                    logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("User"));
-                    Guid userId = user.UserID;
-                    int minClassLevel = _db.Classifications!.Min(auth => auth.ClassLevel);
-                    Guid classID = _db.Classifications!.FirstOrDefault(s => s.ClassLevel == minClassLevel).ClassID;
-                    var profile = new Data.Profile
-                    {
-                        Email = createUserDTO.Email.ToLower(),
-                        UserID = userId,
-                        ClassID = classID
-                    };
-                    _db.Profiles!.Add(profile);
-                    var checkProfileSave = _db.SaveChanges();
-                    if (checkProfileSave == 0)
-                    {
-                        throw new Exception("Create new data failed");
-                    }
-                    logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Profile"));
-
-                    return Ok(new ApiResponse
-                    {
-                        IsSuccess = true,
-                        Message = "Create Account Success"
-                    });
-                }
-                else
+                if (userCheck != null)
                 {
                     return Conflict(new ApiResponse
                     {
@@ -147,6 +100,50 @@ namespace MovieAPI.Controllers
                         Message = "Account already exists"
                     });
                 }
+
+                int minAuthorizationLevel = _db.Authorizations!.Min(auth => auth.AuthorizationLevel);
+                Guid auth = _db.Authorizations!.FirstOrDefault(s => s.AuthorizationLevel == minAuthorizationLevel).AuthorizationID;
+                
+                HashPassword.CreatePasswordHash(createUserDTO.Password, out byte[] passwordHash, out byte[] passwordSalt);
+                var user = new User
+                {
+                    UserName = createUserDTO.UserName,
+                    PasswordHash = passwordHash,
+                    PasswordSalt = passwordSalt,
+                    AuthorizationID = auth
+                };
+                _db.Users!.Add(user);
+                int returnValue = _db.SaveChanges();
+                if (returnValue == 0)
+                {
+                    throw new Exception("Create new data failed");
+                }
+                
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("User"));
+                Guid userId = user.UserID;
+                int minClassLevel = _db.Classifications!.Min(auth => auth.ClassLevel);
+                Guid classID = _db.Classifications!.FirstOrDefault(s => s.ClassLevel == minClassLevel).ClassID;
+                
+                var profile = new Data.Profile
+                {
+                    Email = createUserDTO.Email,
+                    UserID = userId,
+                    ClassID = classID
+                };
+                
+                _db.Profiles!.Add(profile);
+                var checkProfileSave = _db.SaveChanges();
+                if (checkProfileSave == 0)
+                {
+                    throw new Exception("Create new data failed");
+                }
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Profile"));
+
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Create Account Success"
+                });
             }
             catch (Exception ex)
             {
@@ -164,7 +161,6 @@ namespace MovieAPI.Controllers
         {
             try
             {
-
                 var user = _db.Users
                     .Include(user => user.Profile)
                     .Include(user => user.Authorization)
@@ -227,75 +223,87 @@ namespace MovieAPI.Controllers
             }
         }
 
-        //// Change password
-        //[Authorize]
-        //[HttpPost]
-        //public ActionResult ChangePassword([FromBody] LoginDTO loginUserDTO)
-        //{
-        //    try
-        //    {
+        // Change password
+        [Authorize]
+        [HttpPost]
+        public ActionResult ChangePassword([FromBody] ChangePasswordDTO changePasswordDTO)
+        {
+            try {
 
-        //        var user = _db.Users
-        //            .Include(user => user.Profile)
-        //            .Include(user => user.Authorization)
-        //            .FirstOrDefault(user => user.UserName == loginUserDTO.UserName);
+                if (!changePasswordDTO.NewPassword.Equals(changePasswordDTO.ConfirmPassword))
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "New password and confirm password are not the same!",
+                    });
+                }
 
-        //        if (user == null)
-        //        {
-        //            return Ok(new ApiResponse
-        //            {
-        //                IsSuccess = false,
-        //                Message = "Login Failed! Incorrect username or password!",
-        //            });
-        //        }
+                string userId = User.Claims.FirstOrDefault(claim => claim.Type == "UserID").Value;
+                
+                if (userId == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Not found account!",
+                    }); 
+                } 
 
-        //        if (HashPassword.VerifyPasswordHash(loginUserDTO.Password, user.PasswordHash, user.PasswordSalt))
-        //        {
-        //            logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", 1));
-        //            var TokensExist = _db.Tokens!.FirstOrDefault(token => token.UserID == user.UserID);
-        //            if (TokensExist != null)
-        //            {
-        //                _db.Tokens!.Remove(TokensExist);
-        //                _db.SaveChanges();
-        //            }
-        //            var Token = TokenManager.GenerateAccessToken(user);
-        //            var tokenData = new Token
-        //            {
-        //                AccessToken = Token.AccessToken,
-        //                RefreshToken = Token.RefreshToken,
-        //                UserID = user.UserID
-        //            };
-        //            _db.Tokens?.Add(tokenData);
-        //            _db.SaveChanges();
-        //            logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Token"));
+                var user = _db.Users.FirstOrDefault(user => user.UserID.ToString().Equals(userId));
 
-        //            return Ok(new ApiResponse
-        //            {
-        //                IsSuccess = true,
-        //                Message = "Login Success",
-        //                Data = Token
+                if (user == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Not found account!",
+                    });
+                }
 
-        //            });
-        //        }
-        //        else
-        //        {
-        //            return NotFound(new ApiResponse
-        //            {
-        //                IsSuccess = false,
-        //                Message = "Login Failed! Incorrect username or password!"
-        //            });
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", ex.ToString()));
-        //        return NotFound(new ApiResponse
-        //        {
-        //            IsSuccess = false,
-        //            Message = "Login failed"
-        //        });
-        //    }
-        //}
+                if (HashPassword.VerifyPasswordHash(changePasswordDTO.OldPassword, user.PasswordHash, user.PasswordSalt))
+                {
+                    HashPassword.CreatePasswordHash(changePasswordDTO.NewPassword, out byte[] passwordHash, out byte[] passwordSalt);
+
+                    user.PasswordSalt = passwordSalt;
+                    user.PasswordHash = passwordHash;
+                    
+                    _db.Users.Update(user);
+                    int result = _db.SaveChanges();
+
+                    if (result == 0)
+                    {
+                        return StatusCode(500, new ApiResponse
+                        {
+                            IsSuccess = false,
+                            Message = "Can't change password, something wrong",
+                        });
+                    }
+
+                    return Ok(new ApiResponse
+                    {
+                        IsSuccess = true,
+                        Message = "Change password success",
+                    });
+                }
+                else
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Incorrect password!",
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Login failed"
+                });
+            }
+        }
 
         [HttpPost]
         public IActionResult RefreshToken(string AccessToken, string RefreshToken)

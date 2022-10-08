@@ -30,6 +30,6 @@ namespace MovieAPI.Models.DTO
         // Movie Type
         public string MovieTypeName { get; set; }
         // Movie Genre
-        //public List<string> GenreName { get; set; }
+        public List<string> Genres { get; set; }
     }
 }

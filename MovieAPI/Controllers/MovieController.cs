@@ -30,29 +30,19 @@ namespace MovieAPI.Controllers
 
         // Get a movie information by id
         [HttpGet]
+        [ActionName("movie-information")]
         public IActionResult GetAMovieInformationById(string id)
         {
             try
             {
-                
                 var movie = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
-                    //.Include(movie => movie.Genre)
+                    .Include(movie => movie.MovieGenreInformations)
                     .FirstOrDefault(movie => movie.MovieID.ToString() == id);
-                if (movie != null)
-                {
-                    var movieDTO = _mapper.Map<MovieInformation, MovieDTO>(movie);
-                    movieDTO = calculateRating(movieDTO);
-                    logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("Profile", 1));
-                    return Ok(new ApiResponse
-                    {
-                        IsSuccess = true,
-                        Data = movieDTO
-                    });
-                }
-                else
+
+                if (movie == null)
                 {
                     return NotFound(new ApiResponse
                     {
@@ -60,10 +50,20 @@ namespace MovieAPI.Controllers
                         Message = "Movie Not Found"
                     });
                 }
+
+                var movieDTO = _mapper.Map<MovieInformation, MovieDTO>(movie);
+                movieDTO = calculateRating(movieDTO);
+                movieDTO = getGenreName(movieDTO);
+
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("Profile", 1));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Data = movieDTO
+                });
             }
             catch (Exception ex)
             {
-                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError("MovieInformation", ex.ToString()));
                 return NotFound(new ApiResponse
                 {
                     IsSuccess = false,
@@ -74,25 +74,13 @@ namespace MovieAPI.Controllers
 
         // Get all genre of movie
         [HttpGet]
+        [ActionName("all-genre")]
         public IActionResult GetAllGenreOfMovie()
         {
             try
             {
-                
                 IEnumerable<Genre> genres = _db.Genres.ToList();
-                if (genres != null)
-                {
-                    List<String> genresName = genres.Select(genre => genre.GenreName).ToList();
-
-                    logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("Genre", genresName.Count()));
-                    return Ok(new ApiResponse
-                    {
-                        IsSuccess = true,
-                        Message = "Get All Genre Of Movie Success",
-                        Data = genresName
-                    });
-                }
-                else
+                if (genres == null)
                 {
                     return NotFound(new ApiResponse
                     {
@@ -100,6 +88,14 @@ namespace MovieAPI.Controllers
                         Message = "Cannot Get All Genre Of Movie! Something wrong!"
                     });
                 }
+                List<String> genresName = genres.Select(genre => genre.GenreName).ToList();
+
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("Genre", genresName.Count()));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Data = genresName
+                });
             }
             catch (Exception ex)
             {
@@ -114,6 +110,7 @@ namespace MovieAPI.Controllers
 
         // Get the list of 6 latest release movies
         [HttpGet]
+        [ActionName("top-release")]
         public IActionResult GetTopLastestReleaseMovies(int top)
         {
             try
@@ -125,7 +122,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
-                    //.Include(movie => movie.Genre)
+                    .Include(movie => movie.MovieGenreInformations)
                     .OrderBy(movie => movie.ReleaseTime)
                     .Take(top).ToList();
 
@@ -142,6 +139,7 @@ namespace MovieAPI.Controllers
                 movieDTOs.ForEach(movieDTO =>
                 {
                     movieDTO = calculateRating(movieDTO);
+                    movieDTO = getGenreName(movieDTO);
                 });
 
                 return Ok(new ApiResponse
@@ -163,6 +161,7 @@ namespace MovieAPI.Controllers
 
         // Get the list of 6 latest publication movies
         [HttpGet]
+        [ActionName("top-public")]
         public IActionResult GetTopLastestPublicationMovies(int top)
         {
             try
@@ -174,7 +173,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
-                    //.Include(movie => movie.Genre)
+                    .Include(movie => movie.MovieGenreInformations)
                     .OrderBy(movie => movie.PublicationTime)
                     .Take(top).ToList();
 
@@ -191,6 +190,7 @@ namespace MovieAPI.Controllers
                 movieDTOs.ForEach(movieDTO =>
                 {
                     movieDTO = calculateRating(movieDTO);
+                    movieDTO = getGenreName(movieDTO);
                 });
                 return Ok(new ApiResponse
                 {
@@ -224,7 +224,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
-                    //.Include(movie => movie.Genre)
+                    .Include(movie => movie.MovieGenreInformations)
                     .Where(movie => movie.MovieTypeID == typeId)
                     .Take(top).ToList();
 
@@ -241,6 +241,7 @@ namespace MovieAPI.Controllers
                 movieDTOs.ForEach(movieDTO =>
                 {
                     movieDTO = calculateRating(movieDTO);
+                    movieDTO = getGenreName(movieDTO);
                 });
 
                 return Ok(new ApiResponse
@@ -274,7 +275,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
-                    //.Include(movie => movie.Genre)
+                    .Include(movie => movie.MovieGenreInformations)
                     .Where(movie => movie.MovieName.Contains(searchText)
                         || movie.Description.Contains(searchText)
                         || movie.Actor.Contains(searchText)
@@ -294,6 +295,7 @@ namespace MovieAPI.Controllers
                 movieDTOs.ForEach(movieDTO =>
                 {
                     movieDTO = calculateRating(movieDTO);
+                    movieDTO = getGenreName(movieDTO);
                 });
 
                 return Ok(new ApiResponse
@@ -316,6 +318,7 @@ namespace MovieAPI.Controllers
 
         // Total number of movies
         [HttpGet]
+        [ActionName("total-movie")]
         public IActionResult GetTotalNumberOfMovies()
         {
             try
@@ -341,7 +344,7 @@ namespace MovieAPI.Controllers
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
-        public MovieDTO calculateRating(MovieDTO movieDTO)
+        public MovieDTO calculateRating( MovieDTO movieDTO)
         {
             // calculate rating
             var rating = _db.Reviews.Where(review => review.MovieID.Equals(movieDTO.MovieID)).Sum(review => review.Rating);
@@ -351,6 +354,15 @@ namespace MovieAPI.Controllers
 
             return movieDTO;
         }
-       
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public MovieDTO getGenreName(MovieDTO movieDTO)
+        {
+            var genres = _db.Genres.Where(genre => movieDTO.Genres.Contains(genre.GenreID.ToString()))
+                .Select(genre => genre.GenreName).ToList();
+            movieDTO.Genres = genres;
+            return movieDTO;
+        }
+
     }
 }
