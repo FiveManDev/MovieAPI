@@ -396,8 +396,13 @@ namespace MovieAPI.Controllers
                 if (existProfile != null)
                 {
                     var existuser = _db.Users.SingleOrDefault(user => user.UserID == existProfile.UserID);
-                    var Token = TokenManager.GenerateAccessToken(existuser);
-                    return Ok(Token);
+                    var TokenExít = TokenManager.GenerateAccessToken(existuser);
+                    return Ok(new ApiResponse
+                    {
+                        IsSuccess = true,
+                        Message = "Login Success",
+                        Data = TokenExít
+                    });
                 }
                 int minAuthorizationLevel = _db.Authorizations!.Min(auth => auth.AuthorizationLevel);
                 Guid auth = _db.Authorizations!.FirstOrDefault(s => s.AuthorizationLevel == minAuthorizationLevel).AuthorizationID;
@@ -434,11 +439,12 @@ namespace MovieAPI.Controllers
                     throw new Exception("Create new data failed");
                 }
                 logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Profile"));
-
+                var Token = TokenManager.GenerateAccessToken(user);
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Message = "Create Account Success"
+                    Message = "Create Account and login Success",
+                    Data = Token
                 });
             }
             catch
@@ -466,7 +472,9 @@ namespace MovieAPI.Controllers
                     $"Thanks for signing up with {AppSettings.MailTile}!" +
                     $"<br/><b>{code}</b> is your {AppSettings.MailTile} verification." +
                     $" <br/>" +
-                    $"Have fun coding, and don't hesitate to contact us with your feedback."
+                    $"Thank you," +
+                    $" <br/>" +
+                    $"{AppSettings.MailTile} account group"
                 };
                 MailService.SendMail(mailModel);
                 return Ok(new ApiResponse
@@ -482,6 +490,88 @@ namespace MovieAPI.Controllers
                 {
                     IsSuccess = false,
                     Message = "Send code to maill failed"
+                });
+            }
+        }
+        [HttpPost]
+        public IActionResult ConfirmEmailForgotPassword([FromBody] string email)
+        {
+            try
+            {
+                var code = RandomText.RandomByNumberOfCharacters(6, EnumObject.RandomType.Number);
+                var mailName = email.Substring(0, email.IndexOf("@"));
+                var mailModel = new MailModel
+                {
+                    EmailTo = email,
+                    Subject = $"Reset {AppSettings.MailTile} account password",
+                    Body = $"Hello {mailName.ToLower()}!" +
+                    $"<br/><br/>" +
+                    $"Please use this code to reset the password for your {AppSettings.MailTile} account {email}" +
+                    $"<br/>Here is your code: <b>{code}</b>." +
+                    $" <br/>" +
+                    $"Thank you,"+
+                    $" <br/>" +
+                    $"{AppSettings.MailTile} account group"
+
+                };
+                MailService.SendMail(mailModel);
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Send code to mail success",
+                    Data = code
+                });
+            }
+            catch
+            {
+                return BadRequest(new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Send code to maill failed"
+                });
+            }
+        }
+        [HttpPost]
+        public ActionResult ResetPassword([FromBody] ResetPasswordDTO resetPasswordDTO)
+        {
+            Console.WriteLine(resetPasswordDTO.NewPassword);
+            try
+            {
+                var profile = _db.Profiles.FirstOrDefault(pro => pro.Email == resetPasswordDTO.Email);
+                if (profile == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Account not found"
+                    });
+                }
+                if (!string.Equals(resetPasswordDTO.NewPassword, resetPasswordDTO.ConfirmPassword))
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Password and Confirm Password are not the same"
+                    });
+                }
+                var user = _db.Users.FirstOrDefault(user => user.UserID == profile.UserID);
+                HashPassword.CreatePasswordHash(resetPasswordDTO.NewPassword, out byte[] passwordHash, out byte[] passwordSalt);
+                user.PasswordSalt = passwordSalt;
+                user.PasswordHash = passwordHash;
+                _db.Update(user);
+                _db.SaveChanges();
+                return Ok(new ApiResponse
+                    {
+                        IsSuccess = true,
+                        Message = "Reset password success",
+                    });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Reset password failed"
                 });
             }
         }
