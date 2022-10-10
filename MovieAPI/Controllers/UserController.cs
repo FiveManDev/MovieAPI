@@ -534,7 +534,6 @@ namespace MovieAPI.Controllers
         [HttpPost]
         public ActionResult ResetPassword([FromBody] ResetPasswordDTO resetPasswordDTO)
         {
-            Console.WriteLine(resetPasswordDTO.NewPassword);
             try
             {
                 var profile = _db.Profiles.FirstOrDefault(pro => pro.Email == resetPasswordDTO.Email);

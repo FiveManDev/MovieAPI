@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Amazon.S3;
+using Amazon.S3.Model;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
+using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Services.AWS;
 using MovieAPI.Services.Mail;
 using MovieAPI.Services.MomoPayment;
+using System.Reflection;
 
 namespace MovieAPI.Controllers
 {
@@ -12,12 +16,19 @@ namespace MovieAPI.Controllers
     [ApiVersion("1")]
     public class FilesController : ControllerBase
     {
+        private readonly IAmazonS3 _s3Client;
+        private readonly ILogger<FilesController> logger;
+        public FilesController(IAmazonS3 s3Client, ILogger<FilesController> _logger)
+        {
+            _s3Client = s3Client;
+            logger = _logger;
+        }
         [HttpPost]
         public async Task<IActionResult> UploadFile(IFormFile file)
         {
             try
             {
-                var response = await AmazonS3Bucket.UploadFileVideo(file, EnumObject.FileType.Image);
+                var response = await AmazonS3Bucket.UploadFile(_s3Client,file, EnumObject.FileType.Video);
                 return Ok(response);
             }
             catch
@@ -25,15 +36,17 @@ namespace MovieAPI.Controllers
                 return BadRequest(new ApiResponse
                 {
                     IsSuccess = false,
-                    Data = "Something went wrong"
+                    Message = "Something went wrong"
                 });
             }
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllFiles()
+        public async Task<IActionResult> GetAllFiles(string bucketName, string? prefix)
         {
-            return Ok(await AmazonS3Bucket.GetAllFiles());
+            
+            return Ok(await AmazonS3Bucket.GetAllFiles(_s3Client));
+           
         }
 
         //[HttpGet]
@@ -57,6 +70,9 @@ namespace MovieAPI.Controllers
         [HttpGet]
         public IActionResult TestGet()
         {
+            
+          logger.LogInformation("khang");
+
             var a = new List<TestModel>();
             a.Add(new TestModel
             {

@@ -10,9 +10,9 @@ namespace MovieAPI.Services.AWS
 
     public static class AmazonS3Bucket
     {
-        public static async Task<ApiResponse> UploadFileVideo(IFormFile file, FileType fileType)
+
+        public static async Task<ApiResponse> UploadFile(IAmazonS3 s3Client,IFormFile file, FileType fileType)
         {
-            IAmazonS3 s3Client = new AmazonS3Client();
             string prefix = "";
             switch (fileType)
             {
@@ -57,9 +57,8 @@ namespace MovieAPI.Services.AWS
             };
 
         }
-        public static async Task<object> GetAllFiles()
+        public static async Task<object> GetAllFiles(IAmazonS3 s3Client)
         {
-            IAmazonS3 s3Client = new AmazonS3Client();
             var bucket = AppSettings.AWSS3BucketName;
             var bucketExists = await s3Client.DoesS3BucketExistAsync(bucket);
             if (!bucketExists)
@@ -90,9 +89,8 @@ namespace MovieAPI.Services.AWS
 
             return s3Objects;
         }
-        public static async Task<ApiResponse> DeleteFile(string key, FileType fileType)
+        public static async Task<ApiResponse> DeleteFile(IAmazonS3 s3Client, string key, FileType fileType)
         {
-            IAmazonS3 s3Client = new AmazonS3Client();
             string prefix = "";
             switch (fileType)
             {
