@@ -48,24 +48,6 @@ namespace MovieAPI.Controllers
             return Ok(await AmazonS3Bucket.GetAllFiles(_s3Client));
            
         }
-
-        //[HttpGet]
-        //public async Task<IActionResult> GetFileByKey( string key)
-        //{
-        //    var bucketExists = await _s3Client.DoesS3BucketExistAsync(AppSettings.AWSS3BucketName);
-        //    if (!bucketExists) return NotFound($"Bucket {AppSettings.AWSS3BucketName} does not exist.");
-        //    var s3Object = await _s3Client.GetObjectAsync(AppSettings.AWSS3BucketName, key);
-        //    return File(s3Object.ResponseStream, s3Object.Headers.ContentType);
-        //}
-
-        //[HttpDelete]
-        //public async Task<IActionResult> DeleteFile(string bucketName, string key)
-        //{
-        //    var bucketExists = await _s3Client.DoesS3BucketExistAsync(bucketName);
-        //    if (!bucketExists) return NotFound($"Bucket {bucketName} does not exist");
-        //    await _s3Client.DeleteObjectAsync(bucketName, key);
-        //    return NoContent();
-        //}
         [EnableQuery()]
         [HttpGet]
         public IActionResult TestGet()

@@ -14,11 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 //Add services log
-//var logger = new LoggerConfiguration()
-//    .ReadFrom.Configuration(builder.Configuration)
-//    .CreateLogger();
-//builder.Logging.ClearProviders();
-//builder.Logging.AddSerilog(logger);
+var logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
+builder.Logging.ClearProviders();
+builder.Logging.AddSerilog(logger);
 builder.Services.AddControllers();
 //Add config database
 AppSettings.ConnectionString = builder.Configuration.GetConnectionString("MovieAPIConnection");
