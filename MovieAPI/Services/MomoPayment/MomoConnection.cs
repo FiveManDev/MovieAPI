@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using MovieAPI.Models;
+using Newtonsoft.Json.Linq;
 
 namespace MovieAPI.Services.MomoPayment
 {
@@ -10,8 +11,11 @@ namespace MovieAPI.Services.MomoPayment
         private static string endpoint = AppSettings.Endpoint;
         private static string returnUrl = AppSettings.ReturnUrl;
         private static string notifyurl = AppSettings.NotifyUrl;
-        public static async Task<string> MomoResponse(string OrderInfo, string Amount, string ExtraData)
+        public static async Task<string> MomoResponse(PaymentModel paymentModel)
         {
+            var OrderInfo = paymentModel.UserID.ToString();
+            var Amount= paymentModel.Amount.ToString();
+            var ExtraData = paymentModel.Message.ToString();
             string orderid = DateTime.Now.Ticks.ToString();
             string requestId = DateTime.Now.Ticks.ToString();
             string rawHash = "partnerCode=" +
@@ -46,7 +50,7 @@ namespace MovieAPI.Services.MomoPayment
             {
                 return jmessage.GetValue("payUrl").ToString();
             }
-            return "/";
+            return null;
         }
     }
 }

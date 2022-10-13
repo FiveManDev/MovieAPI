@@ -2,7 +2,6 @@ using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MovieAPI.Data.DbConfig;
 using MovieAPI.Services;
@@ -56,10 +55,10 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder => builder
-        .AllowAnyOrigin()
         .AllowAnyMethod()
         .AllowAnyHeader()
-        .SetIsOriginAllowed(origin => true));
+        .SetIsOriginAllowed(origin => true)
+        .AllowCredentials());
 });
 builder.Services.AddSignalR();
 // Add services OData
@@ -92,7 +91,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors("CorsPolicy");
 app.UseEndpoints(endpoints => {
-    endpoints.MapControllers();
     endpoints.MapHub<ChatHub>("/chat");
     endpoints.MapHub<ReviewHub>("/review");
 });

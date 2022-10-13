@@ -42,7 +42,7 @@ namespace MovieAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllFiles(string bucketName, string? prefix)
+        public async Task<IActionResult> GetAllFiles(string bucketName, string prefix)
         {
             
             return Ok(await AmazonS3Bucket.GetAllFiles(_s3Client));
@@ -138,13 +138,7 @@ namespace MovieAPI.Controllers
             MailService.SendMail(mailModel);
             return Ok(mailModel);
         }
-         [HttpGet]
-        public async Task<string> TestPayment()
-        {
-            var amount = 1000;
-            return await MomoConnection.MomoResponse("Khang", amount.ToString(), "sss");
-
-        }
+        
     }
     public class TestModel{
         public int ID { get; set; }

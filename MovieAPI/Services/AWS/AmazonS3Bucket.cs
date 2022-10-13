@@ -1,9 +1,6 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MovieAPI.Models;
-using System;
 using static MovieAPI.Models.EnumObject;
 namespace MovieAPI.Services.AWS
 {
@@ -11,7 +8,7 @@ namespace MovieAPI.Services.AWS
     public static class AmazonS3Bucket
     {
 
-        public static async Task<ApiResponse> UploadFile(IAmazonS3 s3Client,IFormFile file, FileType fileType)
+        public static async Task<string> UploadFile(IAmazonS3 s3Client,IFormFile file, FileType fileType)
         {
             string prefix = "";
             switch (fileType)
@@ -49,12 +46,7 @@ namespace MovieAPI.Services.AWS
             };
 
             string url = s3Client.GetPreSignedURL(expiryUrlRequest);
-            return new ApiResponse
-            {
-                IsSuccess = true,
-                Message = $"File {prefix}/{file.FileName} uploaded to S3 successfully!",
-                Data = url
-            };
+            return url;
 
         }
         public static async Task<object> GetAllFiles(IAmazonS3 s3Client)

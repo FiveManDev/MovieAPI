@@ -34,13 +34,27 @@ namespace MovieAPI.Services.Mapper
             // Mapping (User, UserDTO)
             CreateMap<User, UserDTO>()
                 .ReverseMap();
-
             // Mapping (Profile, ProfileDTO)
             CreateMap<Profile, ProfileDTO>()
+                .ForMember(
+                    des => des.ClassName,
+                    opt => opt.MapFrom(src => src.Classification.ClassName)
+                )
                 .ReverseMap();
-
             // Mapping (Authorization, AuthorizationDTO)
             CreateMap<Authorization, AuthorizationDTO>()
+               .ReverseMap();
+            // Mapping (Review, ReviewDTO)
+            CreateMap<Review, ReviewDTO>()
+               .ReverseMap();
+            // Mapping (Genre, GenreDTO)
+            CreateMap<Genre, GenreDTO>()
+               .ReverseMap();
+            // Mapping (MovieType, MovieTypeDTO)
+            CreateMap<MovieType, MovieTypeDTO>()
+               .ReverseMap();
+            // Mapping (Classification, ClassificationDTO)
+            CreateMap<Classification, ClassificationDTO>()
                .ReverseMap();
         }
     }

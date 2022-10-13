@@ -25,67 +25,13 @@ namespace MovieAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly ILogger<UserController> logger;
-        private readonly IMapper _mapper;
         private readonly MovieAPIDbContext _db;
 
-        public UserController(ILogger<UserController> iLogger, IMapper mapper, MovieAPIDbContext db)
+        public UserController(ILogger<UserController> iLogger, MovieAPIDbContext db)
         {
             logger = iLogger;
-            _mapper = mapper;
             _db = db;
         }
-
-        // Get user information
-        [Authorize]
-        [HttpGet]
-        [ActionName("user-information")]
-        public IActionResult GetUserInformation([Required]string id)
-        {
-            try
-            {
-                string userId = User.Claims.FirstOrDefault(claim => claim.Type == "UserID").Value;
-                if (!userId.Equals(id))
-                {
-                    return StatusCode(401, new ApiResponse
-                    {
-                        IsSuccess = false,
-                        Message = "You are not allowed to get user information"
-                    });
-                }
-
-                var user = _db.Users
-                    .Include(user => user.Profile)
-                    .Include(user => user.Authorization)
-                    .FirstOrDefault(user => user.UserID.ToString() == id);
-
-                if (user == null)
-                {
-                    return NotFound(new ApiResponse
-                    {
-                        IsSuccess = false,
-                        Message = "Cannot Get User Information!"
-                    });
-                }
-                var userDTO = _mapper.Map<User, UserDTO>(user);
-
-                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", 1));
-                return Ok(new ApiResponse
-                {
-                    IsSuccess = true,
-                    Data = userDTO
-                });
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError("User", ex.ToString()));
-                return NotFound(new ApiResponse
-                {
-                    IsSuccess = false,
-                    Message = "Cannot Get User Information! Something wrong!"
-                });
-            }
-        }
-
         [HttpPost]
         public ActionResult CreateUser([FromBody] CreateUserRequestDTO createUserDTO)
         {
@@ -222,7 +168,6 @@ namespace MovieAPI.Controllers
                 });
             }
         }
-
         // Change password
         [Authorize]
         [HttpPost]
@@ -295,7 +240,7 @@ namespace MovieAPI.Controllers
                     });
                 }
             }
-            catch (Exception ex)
+            catch
             {
                 return BadRequest(new ApiResponse
                 {
@@ -304,7 +249,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
-
+        [Authorize]
         [HttpPost]
         public IActionResult RefreshToken(string AccessToken, string RefreshToken)
         {
@@ -386,7 +331,6 @@ namespace MovieAPI.Controllers
                 });
             }
         }
-
         [HttpPost]
         public IActionResult LoginWithService(ServiceLoginModel serviceLoginModel)
         {
@@ -565,7 +509,7 @@ namespace MovieAPI.Controllers
                         Message = "Reset password success",
                     });
             }
-            catch (Exception ex)
+            catch
             {
                 return BadRequest(new ApiResponse
                 {

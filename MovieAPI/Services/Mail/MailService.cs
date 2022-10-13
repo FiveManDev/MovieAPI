@@ -43,7 +43,7 @@ namespace MovieAPI.Services.Mail
                 smtp.Send(mailMessage);
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
                 return false;
             }

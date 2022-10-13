@@ -10,6 +10,10 @@ using Microsoft.EntityFrameworkCore;
 using MovieAPI.Models.DTO;
 using Microsoft.AspNetCore.OData.Query;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
+using MovieAPI.Services.AWS;
+using Amazon.S3;
+using System.Net.WebSockets;
 
 namespace MovieAPI.Controllers
 {
@@ -21,17 +25,19 @@ namespace MovieAPI.Controllers
         private readonly ILogger<UserController> logger;
         private readonly IMapper _mapper;
         private readonly MovieAPIDbContext _db;
-        public MovieController(ILogger<UserController> iLogger, IMapper mapper, MovieAPIDbContext db)
+        private readonly IAmazonS3 s3Client;
+        public MovieController(ILogger<UserController> iLogger, IMapper mapper, MovieAPIDbContext db,IAmazonS3 amazonS3)
         {
             logger = iLogger;
             _mapper = mapper;
             _db = db;
+            s3Client = amazonS3;
         }
 
         // Get a movie information by id
         [HttpGet]
         [ActionName("movie-information")]
-        public IActionResult GetAMovieInformationById(string id)
+        public IActionResult GetMovieInformationById(string id)
         {
             try
             {
@@ -62,7 +68,7 @@ namespace MovieAPI.Controllers
                     Data = movieDTO
                 });
             }
-            catch (Exception ex)
+            catch 
             {
                 return NotFound(new ApiResponse
                 {
@@ -72,41 +78,6 @@ namespace MovieAPI.Controllers
             }
         }
 
-        // Get all genre of movie
-        [HttpGet]
-        [ActionName("all-genre")]
-        public IActionResult GetAllGenreOfMovie()
-        {
-            try
-            {
-                IEnumerable<Genre> genres = _db.Genres.ToList();
-                if (genres == null)
-                {
-                    return NotFound(new ApiResponse
-                    {
-                        IsSuccess = false,
-                        Message = "Cannot Get All Genre Of Movie! Something wrong!"
-                    });
-                }
-                List<String> genresName = genres.Select(genre => genre.GenreName).ToList();
-
-                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("Genre", genresName.Count()));
-                return Ok(new ApiResponse
-                {
-                    IsSuccess = true,
-                    Data = genresName
-                });
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError("Genre", ex.ToString()));
-                return NotFound(new ApiResponse
-                {
-                    IsSuccess = false,
-                    Message = "Cannot Get All Genre Of Movie! Something wrong!"
-                });
-            }
-        }
 
         // Get the list of 6 latest release movies
         [HttpGet]
@@ -149,7 +120,7 @@ namespace MovieAPI.Controllers
                 });
           
             }
-            catch (Exception ex)
+            catch
             {
                 return StatusCode(500, new ApiResponse
                 {
@@ -199,7 +170,7 @@ namespace MovieAPI.Controllers
                 });
 
             }
-            catch (Exception ex)
+            catch
             {
                 return StatusCode(500, new ApiResponse
                 {
@@ -252,7 +223,7 @@ namespace MovieAPI.Controllers
                 });
 
             }
-            catch (Exception ex)
+            catch
             {
                 return StatusCode(500, new ApiResponse
                 {
@@ -306,7 +277,7 @@ namespace MovieAPI.Controllers
                 });
 
             }
-            catch (Exception ex)
+            catch
             {
                 return StatusCode(500, new ApiResponse
                 {
@@ -333,7 +304,7 @@ namespace MovieAPI.Controllers
                 });
 
             }
-            catch (Exception ex)
+            catch
             {
                 return StatusCode(500, new ApiResponse
                 {
@@ -342,7 +313,73 @@ namespace MovieAPI.Controllers
                 });
             }
         }
-
+        [Authorize(Roles ="Admin")]
+        [HttpPost]
+        public async Task<IActionResult> PostMovie([FromBody] PostMovieModel postMovieModel)
+        {
+            try
+            {
+                var thumbnail = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Thumbnail, EnumObject.FileType.Image);
+                var coverImage = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.CoverImage, EnumObject.FileType.Image);
+                var movieURL = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Movie, EnumObject.FileType.Video);
+                var movieInformation = new MovieInformation
+                {
+                    MovieName = postMovieModel.MovieName,
+                    Description = postMovieModel.Description,
+                    Thumbnail= thumbnail,
+                    Country = postMovieModel.Country,
+                    Actor= postMovieModel.Actor.ToString(),
+                    Director = postMovieModel.Director,
+                    Language = postMovieModel.Language,
+                    Subtitle = postMovieModel.Subtitle,
+                    ReleaseTime=postMovieModel.ReleaseTime,
+                    PublicationTime=postMovieModel.PublicationTime,
+                    CoverImage= coverImage,
+                    Age=postMovieModel.Age,
+                    MovieURL= movieURL,
+                    RunningTime=postMovieModel.RunningTime,
+                    Quality=postMovieModel.Quality,
+                    UserID= postMovieModel.UserID,
+                    ClassID = postMovieModel.ClassID,
+                    MovieTypeID = postMovieModel.MovieTypeID,
+                };
+                _db.MovieInformations.Add(movieInformation);
+               var returnValue= _db.SaveChanges();
+                if (returnValue != 0)
+                {
+                    List<MovieGenreInformation> movieGenreInformation = new List<MovieGenreInformation>();
+                    if (postMovieModel.GenreID != null)
+                    {
+                        foreach(var genreID in postMovieModel.GenreID)
+                        {
+                            movieGenreInformation.Add(new MovieGenreInformation
+                            {
+                                GenreID = genreID,
+                                MovieID = movieInformation.MovieID
+                            });
+                        }
+                        return Ok(new ApiResponse
+                        {
+                            IsSuccess = true,
+                            Message = "Upload movie information success"
+                        });
+                    }
+                }
+                return BadRequest(new ApiResponse
+                {
+                    IsSuccess= false,
+                    Message = "Upload movie information failed"
+                });
+            }
+            catch
+            {
+                return BadRequest(new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Upload movie information failed"
+                });
+            }
+        }
         [ApiExplorerSettings(IgnoreApi = true)]
         public MovieDTO calculateRating( MovieDTO movieDTO)
         {
