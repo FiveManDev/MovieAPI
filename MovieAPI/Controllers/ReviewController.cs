@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using MovieAPI.Data;
 using MovieAPI.Data.DbConfig;
 using MovieAPI.Models;
@@ -27,19 +28,16 @@ namespace MovieAPI.Controllers
             this.mapper = mapper;
         }
         [HttpGet]
-        public IActionResult GetAllReviews([FromBody] Guid reviewID)
+        public IActionResult GetAllReviewsOfUser(Guid UserID)
         {
             try
             {
-                var listReviewData = context.Reviews.Where(r => r.ReviewID == reviewID).ToList();
-                List<ReviewDTO> listReview = new List<ReviewDTO>();
-                if (listReviewData != null)
-                {
-                    foreach (var item in listReviewData)
-                    {
-                        listReview.Add(mapper.Map<Review, ReviewDTO>(item));
-                    }
-                }
+                var listReviewData = context.Reviews
+                    .Include(r => r.User.Profile)
+                    .Include(r => r.MovieInformation)
+                    .Where(r => r.UserID == UserID).ToList();
+                var listReview = mapper.Map<List<Review>, List<ReviewDTO>>(listReviewData);
+                
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -53,6 +51,52 @@ namespace MovieAPI.Controllers
                 {
                     IsSuccess = false,
                     Message = "Get all revie by moviewID failed"
+                });
+            }
+        }
+        [HttpGet]
+        public IActionResult SearchReview(string text)
+        {
+            try
+            {
+                var reviews = context.Reviews
+                    .Include(review => review.User.Profile)
+                    .Include(review => review.MovieInformation)
+                    .Where(review => review.User.Profile.FirstName.Contains(text)
+                    || review.User.Profile.LastName.Contains(text)
+                    || review.MovieInformation.MovieName.Contains(text)
+                    || review.ReviewContent.Contains(text))
+                    .ToList();
+                var reviewDTO = mapper.Map<List<Review>, List<ReviewDTO>>(reviews);
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get information sort by create time",
+                    Data = reviewDTO
+                });
+            }
+            catch
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = ""
+                });
+            }
+        }
+        [HttpGet] 
+        public IActionResult GetTopLastestReview(int top)
+        {
+            try
+            {
+                return Ok("");
+            }
+            catch
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = ""
                 });
             }
         }

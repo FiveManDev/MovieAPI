@@ -36,16 +36,24 @@ namespace MovieAPI.Services.Mapper
                 .ReverseMap();
             // Mapping (Profile, ProfileDTO)
             CreateMap<Profile, ProfileDTO>()
-                .ForMember(
-                    des => des.ClassName,
-                    opt => opt.MapFrom(src => src.Classification.ClassName)
-                )
                 .ReverseMap();
             // Mapping (Authorization, AuthorizationDTO)
             CreateMap<Authorization, AuthorizationDTO>()
                .ReverseMap();
             // Mapping (Review, ReviewDTO)
             CreateMap<Review, ReviewDTO>()
+                .ForMember(
+                    des => des.FirstName,
+                    opt => opt.MapFrom(src => src.User.Profile.FirstName)
+                )
+                .ForMember(
+                    des => des.LastName,
+                    opt => opt.MapFrom(src => src.User.Profile.LastName)
+                )
+                .ForMember(
+                    des => des.MovieName,
+                    opt => opt.MapFrom(src => src.MovieInformation.MovieName)
+                )
                .ReverseMap();
             // Mapping (Genre, GenreDTO)
             CreateMap<Genre, GenreDTO>()
@@ -55,6 +63,9 @@ namespace MovieAPI.Services.Mapper
                .ReverseMap();
             // Mapping (Classification, ClassificationDTO)
             CreateMap<Classification, ClassificationDTO>()
+               .ReverseMap();
+            // Mapping (Ticket, TicketDTO)
+            CreateMap<Ticket, TicketDTO>()
                .ReverseMap();
         }
     }

@@ -8,6 +8,7 @@ using MovieAPI.Models;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace MovieAPI.Controllers
 {
@@ -24,16 +25,27 @@ namespace MovieAPI.Controllers
             _mapper = mapper;
             this.context = context;
         }
-        [Authorize]
+        //[Authorize]
         [HttpGet]
         public IActionResult GetInformation([Required] Guid UserID)
         {
             try
             {
-                var profile = context.Profiles
-                    .Include(pro => pro.Classification)
-                    .FirstOrDefault(pro => pro.UserID == UserID);
-                if (profile == null)
+                var user = context.Users
+                    .Include(user => user.Profile)
+                    .Include(user => user.Authorization)
+                    .Include(user=>user.Profile.Classification)
+                    .FirstOrDefault(user => user.UserID == UserID);
+                if (user != null)
+                {
+                    var userDTO = _mapper.Map<User, UserDTO>(user);
+                    return Ok(new ApiResponse
+                    {
+                        IsSuccess = true,
+                        Data = userDTO
+                    });
+                }
+                else
                 {
                     return NotFound(new ApiResponse
                     {
@@ -41,16 +53,9 @@ namespace MovieAPI.Controllers
                         Message = "Cannot Get User Information!"
                     });
                 }
-                var profileDTO = _mapper.Map<Data.Profile, ProfileDTO>(profile);
-                return Ok(new ApiResponse
-                {
-                    IsSuccess = true,
-                    Message="Get user information success",
-                    Data = profileDTO
-                });
             }
-            catch
-            { 
+            catch 
+            {
                 return NotFound(new ApiResponse
                 {
                     IsSuccess = false,
@@ -70,6 +75,138 @@ namespace MovieAPI.Controllers
 
         //    }
         //}
+        [HttpGet]
+        public IActionResult GetInformationSortByCreateTime()
+        {
+            try
+            {
+                var user = context.Users
+                   .Include(user => user.Profile)
+                    .Include(user => user.Authorization)
+                    .Include(user => user.Profile.Classification)
+                    .OrderBy(context => context.CreateAt)
+                    .ToList();
+                var UserDTO= _mapper.Map<List<User>,List<UserDTO>>(user);
+                foreach(var item in UserDTO)
+                {
+
+                    item.NumberOfReviews = getNumberOfReviews(item.UserID);
+                }
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get information sort by create time",
+                    Data = UserDTO
+                });
+
+            }
+            catch
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = ""
+                });
+            }
+        }
+        [HttpGet]
+        public IActionResult SearchUser(string text)
+        {
+            try
+            {
+                var users = context.Users
+                    .Include(user => user.Profile)
+                    .Include(user => user.Authorization)
+                    .Include(user => user.Profile.Classification)
+                    .Where(user => user.Profile.FirstName.Contains(text)
+                    || user.Profile.LastName.Contains(text)
+                    || user.Profile.LastName.Contains(text))
+                    .ToList();
+                var userDTO = _mapper.Map<List<User>, List<UserDTO>>(users);
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get information sort by create time",
+                    Data = userDTO
+                });
+            }
+            catch
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = ""
+                });
+            }
+        }
+        [HttpGet]
+        public IActionResult GetInformationSortByStatus()
+        {
+            try
+            {
+                var user = context.Users
+                   .Include(user => user.Profile)
+                    .Include(user => user.Authorization)
+                    .Include(user => user.Profile.Classification)
+                    .OrderByDescending(context => context.Status)
+                    .ToList();
+                var UserDTO = _mapper.Map<List<User>, List<UserDTO>>(user);
+                foreach (var item in UserDTO)
+                {
+
+                    item.NumberOfReviews = getNumberOfReviews(item.UserID);
+                }
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get information sort by status",
+                    Data = UserDTO
+                });
+
+            }
+            catch
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = ""
+                });
+            }
+        }
+        [HttpGet]
+        public IActionResult GetInformationSortByClass()
+        {
+            try
+            {
+                var user = context.Users
+                   .Include(user => user.Profile)
+                    .Include(user => user.Authorization)
+                    .Include(user => user.Profile.Classification)
+                    .OrderByDescending(context => context.Profile.Classification.ClassLevel)
+                    .ToList();
+                var UserDTO = _mapper.Map<List<User>, List<UserDTO>>(user);
+                foreach (var item in UserDTO)
+                {
+
+                    item.NumberOfReviews = getNumberOfReviews(item.UserID);
+                }
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get information sort by class",
+                    Data = UserDTO
+                });
+
+            }
+            catch
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = ""
+                });
+            }
+        }
         [Authorize]
         [HttpPut]
         public IActionResult PremiumUpgrade([FromBody] Guid userID)
@@ -111,19 +248,61 @@ namespace MovieAPI.Controllers
         }
         [Authorize]
         [HttpPut]
-        public IActionResult UpdateProfile([FromBody] ProfileDTO profileDTO)
+        public IActionResult UpdateProfileForUser([FromBody] (Guid UserID, string FirstName,string LastName) parameters)
         {
             try
             {
-                var profile = context.Profiles.SingleOrDefault(pro => pro.ProfileID == profileDTO.ProfileID);
+                var profile = context.Profiles.SingleOrDefault(pro => pro.UserID == parameters.UserID);
                 if(profile == null)
                 {
                     throw new Exception("");
                 }
-                profile.FirstName = profileDTO.FirstName;
-                profile.LastName = profile.LastName;
-                profile.Email = profileDTO.Email;
+                profile.FirstName = parameters.FirstName;
+                profile.LastName = parameters.LastName;
                 context.Profiles.Update(profile);
+                var returnValue = context.SaveChanges();
+                if (returnValue == 0)
+                {
+
+                }
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Update profile success"
+                });
+            }
+            catch
+            {
+                return BadRequest(new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Update profile faild"
+                });
+            }
+        }
+        [Authorize(Roles ="Admin")]
+        [HttpPut]
+        public IActionResult UpdateProfileForAdmin([FromBody] (Guid UserID, string FirstName, string LastName,Guid ClassID, Guid AuthorizationID) parameters)
+        {
+            try
+            {
+                var user = context.Users
+                    .Include(user=>user.Profile)
+                    .SingleOrDefault(user=>user.UserID== parameters.UserID);
+                if (user == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess =false,
+                        Message = "Profile Not found"
+                    });
+                }
+                var profile = user.Profile;
+                profile.FirstName = parameters.FirstName;
+                profile.LastName = parameters.LastName;
+                profile.ClassID = parameters.ClassID;
+                user.AuthorizationID = parameters.AuthorizationID;
+                context.Update(user);
                 var returnValue = context.SaveChanges();
                 if (returnValue == 0)
                 {
@@ -143,6 +322,13 @@ namespace MovieAPI.Controllers
                     Message = "Update profile faild"
                 });
             }
+        }
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public int getNumberOfReviews(Guid UserID)
+        {
+            var count = context.Reviews.Where(context => context.UserID == UserID).Count();
+
+            return count;
         }
     }
 }

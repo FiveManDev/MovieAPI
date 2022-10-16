@@ -37,6 +37,8 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(user => user.UserName).IsRequired();
                 e.Property(user => user.PasswordHash).IsRequired();
                 e.Property(user => user.PasswordSalt).IsRequired();
+                e.Property(user=>user.Status).IsRequired();
+                e.Property(user=>user.CreateAt).IsRequired();
                 //e.Property(user => user.AuthorizationID).HasConversion<string>();
                 e.HasOne(user => user.Authorization)
                     .WithMany(auth => auth.User)
@@ -112,6 +114,7 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(mi => mi.MovieURL);
                 e.Property(mi => mi.RunningTime);
                 e.Property(mi => mi.Quality);
+                e.Property(mi => mi.IsVisible);
                 e.HasOne(mi => mi.User)
                     .WithMany(user => user.MovieInformations)
                     .HasForeignKey(mi => mi.UserID)

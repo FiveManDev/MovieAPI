@@ -20,6 +20,42 @@ namespace MovieAPI.Controllers
             this.context = context;
         }
         [HttpGet]
+        public IActionResult GetTotalMoney()
+        {
+            try
+            {
+                var maxClassLevel = context.Classifications
+                    .OrderBy(context => context.ClassLevel)
+                    .First();
+                var totalProfile = context.Profiles
+                    .Where(context=>context.ClassID==maxClassLevel.ClassID)
+                    .Count();
+                if(totalProfile == 0)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "No users of Premium tier yet"
+                    });
+                }
+                var totalMoney = totalProfile* maxClassLevel.ClassPrice;
+                return Ok(new ApiResponse
+                {
+                    IsSuccess =true,
+                    Message = "Get total money success",
+                    Data = totalMoney
+                });
+            }
+            catch
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Movies Not Found"
+                });
+            }
+        }
+        [HttpGet]
         public async Task<IActionResult> PaymentRequest([FromQuery] PaymentModel paymentModel)
         {
             try

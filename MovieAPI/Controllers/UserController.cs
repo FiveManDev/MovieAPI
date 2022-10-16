@@ -12,7 +12,6 @@ using MovieAPI.Services;
 using MovieAPI.Services.Mail;
 using MovieWebApp.Models;
 using MovieWebApp.Utility.Extension;
-using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Text;
@@ -26,11 +25,13 @@ namespace MovieAPI.Controllers
     {
         private readonly ILogger<UserController> logger;
         private readonly MovieAPIDbContext _db;
+        private readonly IMapper mapper;
 
-        public UserController(ILogger<UserController> iLogger, MovieAPIDbContext db)
+        public UserController(ILogger<UserController> iLogger, MovieAPIDbContext db,IMapper mapper)
         {
             logger = iLogger;
             _db = db;
+            this.mapper = mapper;
         }
         [HttpPost]
         public ActionResult CreateUser([FromBody] CreateUserRequestDTO createUserDTO)
@@ -56,7 +57,9 @@ namespace MovieAPI.Controllers
                     UserName = createUserDTO.UserName,
                     PasswordHash = passwordHash,
                     PasswordSalt = passwordSalt,
-                    AuthorizationID = auth
+                    AuthorizationID = auth,
+                    Status = true,
+                    CreateAt= DateTime.Now
                 };
                 _db.Users!.Add(user);
                 int returnValue = _db.SaveChanges();
@@ -515,6 +518,155 @@ namespace MovieAPI.Controllers
                 {
                     IsSuccess = false,
                     Message = "Reset password failed"
+                });
+            }
+        }
+        [Authorize(Roles ="Admin")]
+        [HttpDelete]
+        public IActionResult DeleteUser([FromBody] Guid UserId)
+        {
+            try
+            {
+                var user = _db.Users.Find(UserId);
+                if (user == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "User not found"
+                    });
+                }
+                _db.Users.Remove(user);
+                var returnValue = _db.SaveChanges();
+                if (returnValue == 0)
+                {
+                    throw new Exception("");
+                }
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Delete user success"
+                });
+            }
+            catch
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal server error"
+                });
+            }
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpPut]
+        public IActionResult ChangeUserStatus([FromBody] (Guid UserID, bool IsBanned) parameters)
+        {
+            try
+            {
+                var user = _db.Users.Find(parameters.UserID);
+                if (user == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "User not found"
+                    });
+                }
+                user.Status = parameters.IsBanned;
+                _db.Users.Update(user);
+                var returnValue = _db.SaveChanges();
+                if (returnValue == 0)
+                {
+                    throw new Exception("");
+                }
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Change user status success"
+                });
+            }
+            catch
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = ""
+                });
+            }
+        }
+        [HttpGet]
+        public IActionResult GetClassOfUser(Guid userID)
+        {
+            try
+            {
+                var profile = _db.Profiles.FirstOrDefault(pro=>pro.UserID== userID);
+                if(profile == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "User not found"
+                    });
+                }
+                var classification = _db.Classifications.Find(profile.ClassID);
+                if (classification == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Class not found"
+                    });
+                }
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get class of user",
+                    Data = classification.ClassName
+                });
+            }
+            catch
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = ""
+                });
+            }
+        }
+        [Authorize(Roles ="Admin")]
+        [HttpGet]
+        public IActionResult GetLatestCreatedAccount(int top)
+        {
+            try
+            {
+                var user = _db.Users
+                    .Include(user => user.Profile)
+                    .Include(user => user.Authorization)
+                    .Include(user => user.Profile.Classification)
+                    .OrderByDescending(user=>user.CreateAt)
+                    .Take(top).ToList();
+                if(user == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "User is empty"
+                    });
+                }
+                var userInformation =  mapper.Map<List<User>,List<UserDTO>>(user);
+                return Ok(new ApiResponse
+                {
+                    IsSuccess =true,
+                    Message = "Get the latest created account success",
+                    Data = userInformation
+                });
+            }
+            catch
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = ""
                 });
             }
         }

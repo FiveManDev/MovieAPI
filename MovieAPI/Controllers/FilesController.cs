@@ -1,9 +1,11 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using MovieAPI.Helpers;
 using MovieAPI.Models;
+using MovieAPI.Services.Attributes;
 using MovieAPI.Services.AWS;
 using MovieAPI.Services.Mail;
 using MovieAPI.Services.MomoPayment;
@@ -48,7 +50,8 @@ namespace MovieAPI.Controllers
             return Ok(await AmazonS3Bucket.GetAllFiles(_s3Client));
            
         }
-        [EnableQuery()]
+        [Authorize]
+        [UserBanned]
         [HttpGet]
         public IActionResult TestGet()
         {

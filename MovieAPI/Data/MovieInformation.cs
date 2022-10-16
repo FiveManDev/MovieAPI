@@ -18,6 +18,7 @@
         public string MovieURL { get; set; }
         public float RunningTime { get; set; }
         public string Quality { get; set; }
+        public bool IsVisible { get; set; }
         //Relationship
         public Guid UserID { get; set; }
         public User User { get; set; }

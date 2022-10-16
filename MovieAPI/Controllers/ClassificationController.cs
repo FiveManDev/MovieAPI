@@ -1,13 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using MovieAPI.Data;
 using MovieAPI.Data.DbConfig;
 using MovieAPI.Models.DTO;
 using MovieAPI.Models;
-using MovieAPI.Services.SignalR;
 
 namespace MovieAPI.Controllers
 {
