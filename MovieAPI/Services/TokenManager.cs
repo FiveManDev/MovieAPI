@@ -17,7 +17,7 @@ namespace MovieAPI.Services
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var secretKeyBytes = Encoding.UTF8.GetBytes(AppSettings.SecretKey!);
-            var expires = DateTime.UtcNow.AddHours(1);
+            var expires = DateTime.UtcNow.AddDays(1);
             var tokenDescription = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]

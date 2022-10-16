@@ -36,7 +36,7 @@ namespace MovieAPI.Controllers
 
         // Get a movie information by id
         [HttpGet]
-        [ActionName("movie-information")]
+        // [ActionName("movie-information")]
         public IActionResult GetMovieInformationById(string id)
         {
             try
@@ -123,8 +123,8 @@ namespace MovieAPI.Controllers
 
         // Get the list of 6 latest release movies
         [HttpGet]
-        [ActionName("top-release")]
-        public IActionResult GetTopLastestReleaseMovies(int top)
+        // [ActionName("top-release")]
+        public IActionResult GetTopLatestReleaseMovies(int top)
         {
             try
             {
@@ -173,8 +173,8 @@ namespace MovieAPI.Controllers
         }
         // Get the list of 6 latest publication movies
         [HttpGet]
-        [ActionName("top-public")]
-        public IActionResult GetTopLastestPublicationMovies(int top)
+        // [ActionName("top-public")]
+        public IActionResult GetTopLatestPublicationMovies(int top)
         {
             try
             {
@@ -428,7 +428,7 @@ namespace MovieAPI.Controllers
 
         // Total number of movies
         [HttpGet]
-        [ActionName("total-movie")]
+        // [ActionName("total-movie")]
         public IActionResult GetTotalNumberOfMovies()
         {
             try
@@ -458,9 +458,12 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                var thumbnail = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Thumbnail, EnumObject.FileType.Image);
-                var coverImage = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.CoverImage, EnumObject.FileType.Image);
-                var movieURL = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Movie, EnumObject.FileType.Video);
+                // var thumbnail = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Thumbnail, EnumObject.FileType.Image);
+                // var coverImage = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.CoverImage, EnumObject.FileType.Image);
+                // var movieURL = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Movie, EnumObject.FileType.Video);
+                var thumbnail = "";
+                var coverImage="";
+                var movieURL="";
                 var movieInformation = new MovieInformation
                 {
                     MovieName = postMovieModel.MovieName,
@@ -526,9 +529,12 @@ namespace MovieAPI.Controllers
             try
             {
                 var movieInformation = _db.MovieInformations.Find(postMovieModel.MovieID);
-                var thumbnail = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Thumbnail, EnumObject.FileType.Image);
-                var coverImage = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.CoverImage, EnumObject.FileType.Image);
-                var movieURL = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Movie, EnumObject.FileType.Video);
+                // var thumbnail = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Thumbnail, EnumObject.FileType.Image);
+                // var coverImage = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.CoverImage, EnumObject.FileType.Image);
+                // var movieURL = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Movie, EnumObject.FileType.Video);
+                var thumbnail = "";
+                var coverImage="";
+                var movieURL="";
                 movieInformation.MovieName = postMovieModel.MovieName;
                 movieInformation.Description = postMovieModel.Description;
                 movieInformation.Thumbnail = thumbnail;

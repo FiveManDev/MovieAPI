@@ -26,7 +26,7 @@ namespace MovieAPI.Controllers
             this.mapper = mapper;
         }
         [Authorize]
-        [HttpPost]
+        [HttpGet]
         public IActionResult GetTopChat(int top)
         {
             try
@@ -45,25 +45,25 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                var tikets = context.Tickets.Where(t => t.GroupID == GroupID).ToList();
-                if (tikets == null)
+                var tickets = context.Tickets.Where(t => t.GroupID == GroupID).ToList();
+                if (tickets == null)
                 {
                     return BadRequest(new ApiResponse
                     {
                         IsSuccess = false,
-                        Message="Get chat from group id faild"
+                        Message="Get chat from group id failed"
                     });
                 }
-                List<TicketDTO> tiketsDTOs = new List<TicketDTO>();
-                foreach(var ticket in tikets)
+                List<TicketDTO> ticketsDTOs = new List<TicketDTO>();
+                foreach(var ticket in tickets)
                 {
-                    tiketsDTOs.Add(mapper.Map<Ticket,TicketDTO>(ticket));
+                    ticketsDTOs.Add(mapper.Map<Ticket,TicketDTO>(ticket));
                 }
                 return Ok(new ApiResponse
                 {
                     IsSuccess=true,
                     Message= "Get chat message success",
-                    Data= tiketsDTOs
+                    Data= ticketsDTOs
                 });
             }
             catch
