@@ -27,7 +27,7 @@ namespace MovieAPI.Controllers
         private readonly MovieAPIDbContext _db;
         private readonly IMapper mapper;
 
-        public UserController(ILogger<UserController> iLogger, MovieAPIDbContext db,IMapper mapper)
+        public UserController(ILogger<UserController> iLogger, MovieAPIDbContext db, IMapper mapper)
         {
             logger = iLogger;
             _db = db;
@@ -38,9 +38,11 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var userCheck = _db.Users!.FirstOrDefault(user => user.UserName == createUserDTO.UserName);
                 if (userCheck != null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataError("User", "Account already exists"));
                     return Conflict(new ApiResponse
                     {
                         IsSuccess = false,
@@ -50,7 +52,6 @@ namespace MovieAPI.Controllers
 
                 int minAuthorizationLevel = _db.Authorizations!.Min(auth => auth.AuthorizationLevel);
                 Guid auth = _db.Authorizations!.FirstOrDefault(s => s.AuthorizationLevel == minAuthorizationLevel).AuthorizationID;
-                
                 HashPassword.CreatePasswordHash(createUserDTO.Password, out byte[] passwordHash, out byte[] passwordSalt);
                 var user = new User
                 {
@@ -59,35 +60,32 @@ namespace MovieAPI.Controllers
                     PasswordSalt = passwordSalt,
                     AuthorizationID = auth,
                     Status = true,
-                    CreateAt= DateTime.Now
+                    CreateAt = DateTime.Now
                 };
                 _db.Users!.Add(user);
                 int returnValue = _db.SaveChanges();
                 if (returnValue == 0)
                 {
-                    throw new Exception("Create new data failed");
+                    throw new Exception("Save data of User failed");
                 }
-                
                 logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("User"));
                 Guid userId = user.UserID;
                 int minClassLevel = _db.Classifications!.Min(auth => auth.ClassLevel);
                 Guid classID = _db.Classifications!.FirstOrDefault(s => s.ClassLevel == minClassLevel).ClassID;
-                
                 var profile = new Data.Profile
                 {
                     Email = createUserDTO.Email,
                     UserID = userId,
                     ClassID = classID
                 };
-                
+
                 _db.Profiles!.Add(profile);
                 var checkProfileSave = _db.SaveChanges();
                 if (checkProfileSave == 0)
                 {
-                    throw new Exception("Create new data failed");
+                    throw new Exception("Save data of profile failed");
                 }
                 logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Profile"));
-
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -96,11 +94,11 @@ namespace MovieAPI.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError("User", ex.ToString()));
-                return NotFound(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError("User - Profile", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Create new user failed",
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -110,20 +108,20 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var user = _db.Users
                     .Include(user => user.Profile)
                     .Include(user => user.Authorization)
                     .FirstOrDefault(user => user.UserName == loginUserDTO.UserName);
-
                 if (user == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("User", "User not found"));
                     return Ok(new ApiResponse
                     {
                         IsSuccess = false,
                         Message = "Login Failed! Incorrect username or password!",
                     });
                 }
-
                 if (HashPassword.VerifyPasswordHash(loginUserDTO.Password, user.PasswordHash, user.PasswordSalt))
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", 1));
@@ -143,7 +141,6 @@ namespace MovieAPI.Controllers
                     _db.Tokens?.Add(tokenData);
                     _db.SaveChanges();
                     logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Token"));
-
                     return Ok(new ApiResponse
                     {
                         IsSuccess = true,
@@ -154,6 +151,7 @@ namespace MovieAPI.Controllers
                 }
                 else
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("User", "User erorr"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -164,45 +162,44 @@ namespace MovieAPI.Controllers
             catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", ex.ToString()));
-                return NotFound(new ApiResponse
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Login failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
-        // Change password
         [Authorize]
         [HttpPost]
         public ActionResult ChangePassword([FromBody] ChangePasswordDTO changePasswordDTO)
         {
-            try {
-
+            try
+            {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 if (!changePasswordDTO.NewPassword.Equals(changePasswordDTO.ConfirmPassword))
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("User", "New password and confirm password are not the same!"));
                     return BadRequest(new ApiResponse
                     {
                         IsSuccess = false,
                         Message = "New password and confirm password are not the same!",
                     });
                 }
-
                 string userId = User.Claims.FirstOrDefault(claim => claim.Type == "UserID").Value;
-                
                 if (userId == null)
                 {
-                    return BadRequest(new ApiResponse
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("User", "User not found"));
+                    return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
                         Message = "Not found account!",
-                    }); 
-                } 
-
+                    });
+                }
                 var user = _db.Users.FirstOrDefault(user => user.UserID.ToString().Equals(userId));
-
                 if (user == null)
                 {
-                    return BadRequest(new ApiResponse
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("User", "User not found"));
+                    return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
                         Message = "Not found account!",
@@ -215,19 +212,15 @@ namespace MovieAPI.Controllers
 
                     user.PasswordSalt = passwordSalt;
                     user.PasswordHash = passwordHash;
-                    
+
                     _db.Users.Update(user);
                     int result = _db.SaveChanges();
 
                     if (result == 0)
                     {
-                        return StatusCode(500, new ApiResponse
-                        {
-                            IsSuccess = false,
-                            Message = "Can't change password, something wrong",
-                        });
+                        throw new Exception("Save data of User failed");
                     }
-
+                    logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", 1));
                     return Ok(new ApiResponse
                     {
                         IsSuccess = true,
@@ -236,6 +229,7 @@ namespace MovieAPI.Controllers
                 }
                 else
                 {
+                    logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", "Incorrect password"));
                     return BadRequest(new ApiResponse
                     {
                         IsSuccess = false,
@@ -243,12 +237,13 @@ namespace MovieAPI.Controllers
                     });
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Login failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -256,6 +251,7 @@ namespace MovieAPI.Controllers
         [HttpPost]
         public IActionResult RefreshToken(string AccessToken, string RefreshToken)
         {
+            logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             TokenModel tokenModel = new TokenModel
             {
                 AccessToken = AccessToken,
@@ -327,10 +323,10 @@ namespace MovieAPI.Controllers
             catch (Exception ex)
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataError("Token", ex.ToString()));
-                return BadRequest(new ApiResponse
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Something went wrong"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -339,11 +335,13 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var existProfile = _db.Profiles.SingleOrDefault(pro => pro.Email == serviceLoginModel.Mail.ToLower());
                 if (existProfile != null)
                 {
                     var existuser = _db.Users.SingleOrDefault(user => user.UserID == existProfile.UserID);
                     var TokenExít = TokenManager.GenerateAccessToken(existuser);
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("User", 1));
                     return Ok(new ApiResponse
                     {
                         IsSuccess = true,
@@ -356,7 +354,7 @@ namespace MovieAPI.Controllers
                 HashPassword.CreatePasswordHash(serviceLoginModel.Id, out byte[] passwordHash, out byte[] passwordSalt);
                 var user = new User
                 {
-                    UserName = serviceLoginModel.Id+"Google",
+                    UserName = serviceLoginModel.Id + "Google",
                     PasswordHash = passwordHash,
                     PasswordSalt = passwordSalt,
                     AuthorizationID = auth
@@ -365,7 +363,7 @@ namespace MovieAPI.Controllers
                 int returnValue = _db.SaveChanges();
                 if (returnValue == 0)
                 {
-                    throw new Exception("Create new data failed");
+                    throw new Exception("Save data of user failed");
                 }
                 logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("User"));
                 Guid userId = user.UserID;
@@ -383,7 +381,7 @@ namespace MovieAPI.Controllers
                 var checkProfileSave = _db.SaveChanges();
                 if (checkProfileSave == 0)
                 {
-                    throw new Exception("Create new data failed");
+                    throw new Exception("Save data of profile failed");
                 }
                 logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Profile"));
                 var Token = TokenManager.GenerateAccessToken(user);
@@ -394,12 +392,13 @@ namespace MovieAPI.Controllers
                     Data = Token
                 });
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Login failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -408,8 +407,9 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                var code = RandomText.RandomByNumberOfCharacters(6,EnumObject.RandomType.Number);
-                var mailName = email.Substring(0,email.IndexOf("@"));
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var code = RandomText.RandomByNumberOfCharacters(6, EnumObject.RandomType.Number);
+                var mailName = email.Substring(0, email.IndexOf("@"));
                 var mailModel = new MailModel
                 {
                     EmailTo = email,
@@ -424,6 +424,7 @@ namespace MovieAPI.Controllers
                     $"{AppSettings.MailTile} account group"
                 };
                 MailService.SendMail(mailModel);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("No table", 0));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -431,12 +432,13 @@ namespace MovieAPI.Controllers
                     Data = code
                 });
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Send code to maill failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -445,6 +447,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var code = RandomText.RandomByNumberOfCharacters(6, EnumObject.RandomType.Number);
                 var mailName = email.Substring(0, email.IndexOf("@"));
                 var mailModel = new MailModel
@@ -456,12 +459,13 @@ namespace MovieAPI.Controllers
                     $"Please use this code to reset the password for your {AppSettings.MailTile} account {email}" +
                     $"<br/>Here is your code: <b>{code}</b>." +
                     $" <br/>" +
-                    $"Thank you,"+
+                    $"Thank you," +
                     $" <br/>" +
                     $"{AppSettings.MailTile} account group"
 
                 };
                 MailService.SendMail(mailModel);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("No table", 0));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -469,12 +473,13 @@ namespace MovieAPI.Controllers
                     Data = code
                 });
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Send code to maill failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -483,9 +488,11 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var profile = _db.Profiles.FirstOrDefault(pro => pro.Email == resetPasswordDTO.Email);
                 if (profile == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("Profile", "Account not found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -494,6 +501,7 @@ namespace MovieAPI.Controllers
                 }
                 if (!string.Equals(resetPasswordDTO.NewPassword, resetPasswordDTO.ConfirmPassword))
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("Profile", "Password and Confirm Password are not the sam"));
                     return BadRequest(new ApiResponse
                     {
                         IsSuccess = false,
@@ -506,30 +514,34 @@ namespace MovieAPI.Controllers
                 user.PasswordHash = passwordHash;
                 _db.Update(user);
                 _db.SaveChanges();
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Profile", 1));
                 return Ok(new ApiResponse
-                    {
-                        IsSuccess = true,
-                        Message = "Reset password success",
-                    });
+                {
+                    IsSuccess = true,
+                    Message = "Reset password success",
+                });
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Reset password failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete]
         public IActionResult DeleteUser([FromBody] Guid UserId)
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var user = _db.Users.Find(UserId);
                 if (user == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("User", "User not found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -540,20 +552,22 @@ namespace MovieAPI.Controllers
                 var returnValue = _db.SaveChanges();
                 if (returnValue == 0)
                 {
-                    throw new Exception("");
+                    throw new Exception("Delete data of user failed");
                 }
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.DeleteDataSuccess("User", 1));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Delete user success"
                 });
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Internal server error"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -563,9 +577,11 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var user = _db.Users.Find(parameters.UserID);
                 if (user == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("User", "User not found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -577,7 +593,7 @@ namespace MovieAPI.Controllers
                 var returnValue = _db.SaveChanges();
                 if (returnValue == 0)
                 {
-                    throw new Exception("");
+                    throw new Exception("Update data of user failed");
                 }
                 return Ok(new ApiResponse
                 {
@@ -585,12 +601,13 @@ namespace MovieAPI.Controllers
                     Message = "Change user status success"
                 });
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = ""
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -599,9 +616,11 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                var profile = _db.Profiles.FirstOrDefault(pro=>pro.UserID== userID);
-                if(profile == null)
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var profile = _db.Profiles.FirstOrDefault(pro => pro.UserID == userID);
+                if (profile == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("User", "User not found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -611,12 +630,14 @@ namespace MovieAPI.Controllers
                 var classification = _db.Classifications.Find(profile.ClassID);
                 if (classification == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("Classification", "Classification not found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
                         Message = "Class not found"
                     });
                 }
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Classification", 1));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -624,49 +645,54 @@ namespace MovieAPI.Controllers
                     Data = classification.ClassName
                 });
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = ""
+                    Message = "Internal Server Error"
                 });
             }
         }
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult GetLatestCreatedAccount(int top)
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var user = _db.Users
                     .Include(user => user.Profile)
                     .Include(user => user.Authorization)
                     .Include(user => user.Profile.Classification)
-                    .OrderByDescending(user=>user.CreateAt)
+                    .OrderByDescending(user => user.CreateAt)
                     .Take(top).ToList();
-                if(user == null)
+                if (user == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("User", "User is empty"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
                         Message = "User is empty"
                     });
                 }
-                var userInformation =  mapper.Map<List<User>,List<UserDTO>>(user);
+                var userInformation = mapper.Map<List<User>, List<UserDTO>>(user);
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", user.Count));
                 return Ok(new ApiResponse
                 {
-                    IsSuccess =true,
+                    IsSuccess = true,
                     Message = "Get the latest created account success",
                     Data = userInformation
                 });
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = ""
+                    Message = "Internal Server Error"
                 });
             }
         }

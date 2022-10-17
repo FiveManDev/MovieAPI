@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MovieAPI.Data;
 using MovieAPI.Data.DbConfig;
-using MovieAPI.Models.DTO;
+using MovieAPI.Helpers;
 using MovieAPI.Models;
+using MovieAPI.Models.DTO;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace MovieAPI.Controllers
@@ -19,11 +19,12 @@ namespace MovieAPI.Controllers
     {
         private readonly IMapper _mapper;
         private readonly MovieAPIDbContext context;
-
-        public ProfileController(IMapper mapper, MovieAPIDbContext context)
+        private readonly ILogger<ProfileController> logger;
+        public ProfileController(IMapper mapper, MovieAPIDbContext context, ILogger<ProfileController> logger)
         {
             _mapper = mapper;
             this.context = context;
+            this.logger = logger;
         }
         //[Authorize]
         [HttpGet]
@@ -31,13 +32,15 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var user = context.Users
                     .Include(user => user.Profile)
                     .Include(user => user.Authorization)
-                    .Include(user=>user.Profile.Classification)
+                    .Include(user => user.Profile.Classification)
                     .FirstOrDefault(user => user.UserID == UserID);
                 if (user != null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Users - Profile - Authorization - Classification", 1));
                     var userDTO = _mapper.Map<User, UserDTO>(user);
                     return Ok(new ApiResponse
                     {
@@ -47,15 +50,17 @@ namespace MovieAPI.Controllers
                 }
                 else
                 {
+                    logger.LogError(MethodBase.GetCurrentMethod().Name.GetDataError("Users - Profile - Authorization - Classification", "User not found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
-                        Message = "Cannot Get User Information!"
+                        Message = "User not found"
                     });
                 }
             }
-            catch 
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Users - Profile - Authorization - Classification", ex.ToString()));
                 return NotFound(new ApiResponse
                 {
                     IsSuccess = false,
@@ -69,7 +74,7 @@ namespace MovieAPI.Controllers
         //{
         //    try
         //    {
-            
+
         //    catch
         //    {
 
@@ -80,32 +85,33 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var user = context.Users
-                   .Include(user => user.Profile)
+                    .Include(user => user.Profile)
                     .Include(user => user.Authorization)
                     .Include(user => user.Profile.Classification)
                     .OrderBy(context => context.CreateAt)
                     .ToList();
-                var UserDTO= _mapper.Map<List<User>,List<UserDTO>>(user);
-                foreach(var item in UserDTO)
+                var UserDTO = _mapper.Map<List<User>, List<UserDTO>>(user);
+                foreach (var item in UserDTO)
                 {
-
                     item.NumberOfReviews = getNumberOfReviews(item.UserID);
                 }
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Users - Profile - Authorization - Classification", user.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Get information sort by create time",
                     Data = UserDTO
                 });
-
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Users - Profile - Authorization - Classification", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = ""
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -114,6 +120,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var users = context.Users
                     .Include(user => user.Profile)
                     .Include(user => user.Authorization)
@@ -123,6 +130,7 @@ namespace MovieAPI.Controllers
                     || user.Profile.LastName.Contains(text))
                     .ToList();
                 var userDTO = _mapper.Map<List<User>, List<UserDTO>>(users);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Users - Profile - Authorization - Classification", users.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -130,12 +138,13 @@ namespace MovieAPI.Controllers
                     Data = userDTO
                 });
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Users - Profile - Authorization - Classification", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = ""
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -144,6 +153,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var user = context.Users
                    .Include(user => user.Profile)
                     .Include(user => user.Authorization)
@@ -153,23 +163,23 @@ namespace MovieAPI.Controllers
                 var UserDTO = _mapper.Map<List<User>, List<UserDTO>>(user);
                 foreach (var item in UserDTO)
                 {
-
                     item.NumberOfReviews = getNumberOfReviews(item.UserID);
                 }
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Users - Profile - Authorization - Classification", user.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Get information sort by status",
                     Data = UserDTO
                 });
-
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Users - Profile - Authorization - Classification", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = ""
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -178,8 +188,9 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var user = context.Users
-                   .Include(user => user.Profile)
+                    .Include(user => user.Profile)
                     .Include(user => user.Authorization)
                     .Include(user => user.Profile.Classification)
                     .OrderByDescending(context => context.Profile.Classification.ClassLevel)
@@ -187,23 +198,23 @@ namespace MovieAPI.Controllers
                 var UserDTO = _mapper.Map<List<User>, List<UserDTO>>(user);
                 foreach (var item in UserDTO)
                 {
-
                     item.NumberOfReviews = getNumberOfReviews(item.UserID);
                 }
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Users - Profile - Authorization - Classification", user.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Get information sort by class",
                     Data = UserDTO
                 });
-
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Users - Profile - Authorization - Classification", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = ""
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -213,49 +224,59 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                var profile = context.Profiles.SingleOrDefault(pro=>pro.UserID==userID);
-                if(profile == null)
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var profile = context.Profiles.SingleOrDefault(pro => pro.UserID == userID);
+                if (profile == null)
                 {
-                    throw new Exception("Profile not found");
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("Profile", "Profile not found"));
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Profile not found"
+                    });
                 }
-                var maxLevel = context.Classifications.Max(cl=>cl.ClassLevel);
+                var maxLevel = context.Classifications.Max(cl => cl.ClassLevel);
                 var classification = context.Classifications.SingleOrDefault(cl => cl.ClassLevel == maxLevel);
-                if (classification == null)
-                {
-                    throw new Exception("Premium Upgrade failed");
-                }
                 profile.ClassID = classification.ClassID;
                 context.Profiles.Update(profile);
                 var returnValue = context.SaveChanges();
                 if (returnValue == 0)
                 {
-                    throw new Exception("Premium Upgrade failed");
+                    throw new Exception("Save data of profile failed");
                 }
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.PutDataSuccess("Profile", 1));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Premium Upgrade success"
                 });
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PutDataError("Profile", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Premium Upgrade failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
         [Authorize]
         [HttpPut]
-        public IActionResult UpdateProfileForUser([FromBody] (Guid UserID, string FirstName,string LastName) parameters)
+        public IActionResult UpdateProfileForUser([FromBody] (Guid UserID, string FirstName, string LastName) parameters)
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var profile = context.Profiles.SingleOrDefault(pro => pro.UserID == parameters.UserID);
-                if(profile == null)
+                if (profile == null)
                 {
-                    throw new Exception("");
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.PutDataError("Profile", "Profile not found"));
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Profile not found"
+                    });
                 }
                 profile.FirstName = parameters.FirstName;
                 profile.LastName = parameters.LastName;
@@ -263,37 +284,42 @@ namespace MovieAPI.Controllers
                 var returnValue = context.SaveChanges();
                 if (returnValue == 0)
                 {
-
+                    throw new Exception("Save data of profile failed");
                 }
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.PutDataSuccess("Profile", 1));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Update profile success"
                 });
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PutDataError("Profile", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Update profile faild"
+                    Message = "Internal Server Error"
                 });
             }
         }
-        [Authorize(Roles ="Admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut]
-        public IActionResult UpdateProfileForAdmin([FromBody] (Guid UserID, string FirstName, string LastName,Guid ClassID, Guid AuthorizationID) parameters)
+        public IActionResult UpdateProfileForAdmin([FromBody] (Guid UserID, string FirstName, string LastName, Guid ClassID, Guid AuthorizationID) parameters)
         {
+            
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var user = context.Users
-                    .Include(user=>user.Profile)
-                    .SingleOrDefault(user=>user.UserID== parameters.UserID);
+                    .Include(user => user.Profile)
+                    .SingleOrDefault(user => user.UserID == parameters.UserID);
                 if (user == null)
                 {
+                    logger.LogError(MethodBase.GetCurrentMethod().Name.PutDataError("Profile", "Profile Not found"));
                     return NotFound(new ApiResponse
                     {
-                        IsSuccess =false,
+                        IsSuccess = false,
                         Message = "Profile Not found"
                     });
                 }
@@ -306,7 +332,7 @@ namespace MovieAPI.Controllers
                 var returnValue = context.SaveChanges();
                 if (returnValue == 0)
                 {
-
+                    throw new Exception("Save data of profile failed");
                 }
                 return Ok(new ApiResponse
                 {
@@ -314,18 +340,20 @@ namespace MovieAPI.Controllers
                     Message = "Update profile success"
                 });
             }
-            catch
+            catch (Exception ex)
             {
-                return Ok(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PutDataError("Profile", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Update profile faild"
+                    Message = "Internal Server Error"
                 });
             }
         }
         [ApiExplorerSettings(IgnoreApi = true)]
         public int getNumberOfReviews(Guid UserID)
         {
+            logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             var count = context.Reviews.Where(context => context.UserID == UserID).Count();
 
             return count;

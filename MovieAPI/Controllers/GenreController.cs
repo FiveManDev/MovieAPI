@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MovieAPI.Data;
 using MovieAPI.Data.DbConfig;
+using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
 using System.Reflection;
@@ -16,31 +16,31 @@ namespace MovieAPI.Controllers
     {
         private readonly IMapper mapper;
         private readonly MovieAPIDbContext context;
-
-        public GenreController(IMapper mapper, MovieAPIDbContext context)
+        private readonly ILogger<GenreController> logger;
+        public GenreController(IMapper mapper, MovieAPIDbContext context, ILogger<GenreController> logger)
         {
             this.mapper = mapper;
             this.context = context;
+            this.logger = logger;
         }
         [HttpGet]
         public IActionResult GetAll()
         {
             try
             {
-                IEnumerable<Genre> genres = context.Genres.ToList();
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var genres = context.Genres.ToList();
                 if (genres == null)
                 {
+                    logger.LogError(MethodBase.GetCurrentMethod().Name.GetDataError("Genre",""));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
-                        Message = "Cannot Get All Genre! Something wrong!"
+                        Message = "Genres is empty!"
                     });
                 }
-                List<GenreDTO> genreDTOs = new List<GenreDTO>();
-                foreach(var genre in genres)
-                {
-                    genreDTOs.Add(mapper.Map<Genre, GenreDTO>(genre));
-                }
+                var genreDTOs = mapper.Map<List<Genre>, List<GenreDTO>>(genres);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Genre", genres.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -48,12 +48,13 @@ namespace MovieAPI.Controllers
                     Data = genreDTOs
                 });
             }
-            catch
+            catch(Exception ex)
             {
-                return NotFound(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Genre", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Cannot Get All Genre! Something wrong!"
+                    Message = "Internal Server Error"
                 });
             }
         }

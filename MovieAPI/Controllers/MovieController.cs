@@ -1,19 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using MovieAPI.Data.DbConfig;
-using MovieAPI.Data;
-using MovieAPI.Models;
-using System.Reflection;
-using MovieAPI.Helpers;
+﻿using Amazon.S3;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using MovieAPI.Models.DTO;
-using Microsoft.AspNetCore.OData.Query;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
-using MovieAPI.Services.AWS;
-using Amazon.S3;
-using System.Net.WebSockets;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using MovieAPI.Data;
+using MovieAPI.Data.DbConfig;
+using MovieAPI.Helpers;
+using MovieAPI.Models;
+using MovieAPI.Models.DTO;
+using System.Reflection;
 
 namespace MovieAPI.Controllers
 {
@@ -33,14 +28,12 @@ namespace MovieAPI.Controllers
             _db = db;
             s3Client = amazonS3;
         }
-
-        // Get a movie information by id
         [HttpGet]
-        // [ActionName("movie-information")]
         public IActionResult GetMovieInformationById(string id)
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var movie = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
@@ -50,6 +43,7 @@ namespace MovieAPI.Controllers
 
                 if (movie == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformation", "Movie Not Found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -60,20 +54,21 @@ namespace MovieAPI.Controllers
                 var movieDTO = _mapper.Map<MovieInformation, MovieDTO>(movie);
                 movieDTO = calculateRating(movieDTO);
                 movieDTO = getGenreName(movieDTO);
-
                 logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("Profile", 1));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
+                    Message = "Get Movie Information By Id",
                     Data = movieDTO
                 });
             }
-            catch
+            catch (Exception ex)
             {
-                return NotFound(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Movie Not Found"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -82,6 +77,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var movies = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
@@ -91,43 +87,43 @@ namespace MovieAPI.Controllers
                     .ToList();
                 if (movies == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
                         Message = "Movies Not Found"
                     });
                 }
-
                 var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
                 movieDTOs.ForEach(movieDTO =>
                 {
                     movieDTO = calculateRating(movieDTO);
                     movieDTO = getGenreName(movieDTO);
                 });
-
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformation", movieDTOs.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
+                    Message = "Get Movie Sort By Publication Time Success",
                     Data = movieDTOs
                 });
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Movies Not Found"
+                    Message = "Internal Server Error"
                 });
             }
         }
-
-        // Get the list of 6 latest release movies
         [HttpGet]
-        // [ActionName("top-release")]
         public IActionResult GetTopLatestReleaseMovies(int top)
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 if (top <= 0) top = 6;
                 if (top > 10) top = 10;
 
@@ -141,6 +137,7 @@ namespace MovieAPI.Controllers
 
                 if (movies == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -154,30 +151,30 @@ namespace MovieAPI.Controllers
                     movieDTO = calculateRating(movieDTO);
                     movieDTO = getGenreName(movieDTO);
                 });
-
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformations",movieDTOs.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
+                    Message= "Get Top Latest Release Movies Success",
                     Data = movieDTOs
                 });
-
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Movies Not Found"
+                    Message = "Internal Server Error"
                 });
             }
         }
-        // Get the list of 6 latest publication movies
         [HttpGet]
-        // [ActionName("top-public")]
         public IActionResult GetTopLatestPublicationMovies(int top)
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 if (top <= 0) top = 6;
                 if (top > 10) top = 10;
 
@@ -191,6 +188,7 @@ namespace MovieAPI.Controllers
 
                 if (movies == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -204,6 +202,7 @@ namespace MovieAPI.Controllers
                     movieDTO = calculateRating(movieDTO);
                     movieDTO = getGenreName(movieDTO);
                 });
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformation",movies.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -211,22 +210,22 @@ namespace MovieAPI.Controllers
                 });
 
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));   
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Movies Not Found"
+                    Message = "Internal Server Error"
                 });
             }
         }
-
-        // Get Movies Based On Type
         [HttpGet]
         public IActionResult GetMoviesBasedOnType(string type, int top)
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 if (top <= 0) top = 6;
                 if (top > 10) top = 10;
 
@@ -242,6 +241,7 @@ namespace MovieAPI.Controllers
 
                 if (movies == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -255,7 +255,7 @@ namespace MovieAPI.Controllers
                     movieDTO = calculateRating(movieDTO);
                     movieDTO = getGenreName(movieDTO);
                 });
-
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformation",movies.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -264,12 +264,13 @@ namespace MovieAPI.Controllers
                 });
 
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Movies Not Found"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -278,6 +279,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var genreID = _db.Genres.SingleOrDefault(genre => genre.GenreName.Equals(genreName)).GenreID;
                 var movieGenreInformations = _db.MovieGenreInformations
                     .Include(mg => mg.MovieInformation)
@@ -290,6 +292,7 @@ namespace MovieAPI.Controllers
                     .ToList();
                 if (movieGenreInformations == null)
                 {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -302,6 +305,7 @@ namespace MovieAPI.Controllers
                     movieDTO = calculateRating(movieDTO);
                     movieDTO = getGenreName(movieDTO);
                 });
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformation", movieDTOs.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -309,18 +313,20 @@ namespace MovieAPI.Controllers
                     Data = movieDTOs
                 });
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Movies Not Found"
+                    Message = "Internal Server Error"
                 });
             }
         }
         [HttpGet]
         public IActionResult GetMovieBaseOnTopRating(int top)
         {
+            logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             try
             {
                 //if (top <= 0) top = 6;
@@ -367,7 +373,7 @@ namespace MovieAPI.Controllers
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Movies Not Found"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -377,6 +383,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 if (top <= 0) top = 6;
                 if (top > 10) top = 10;
 
@@ -394,6 +401,7 @@ namespace MovieAPI.Controllers
 
                 if (movies == null)
                 {
+                    logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -407,7 +415,7 @@ namespace MovieAPI.Controllers
                     movieDTO = calculateRating(movieDTO);
                     movieDTO = getGenreName(movieDTO);
                 });
-
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformatio",movieDTOs.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -416,25 +424,25 @@ namespace MovieAPI.Controllers
                 });
 
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Movies Not Found"
+                    Message = "Internal Server Error"
                 });
             }
         }
 
-        // Total number of movies
         [HttpGet]
-        // [ActionName("total-movie")]
         public IActionResult GetTotalNumberOfMovies()
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var count = _db.MovieInformations.Count();
-
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformation", count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -443,12 +451,13 @@ namespace MovieAPI.Controllers
                 });
 
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Movies Not Found"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -458,12 +467,13 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 // var thumbnail = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Thumbnail, EnumObject.FileType.Image);
                 // var coverImage = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.CoverImage, EnumObject.FileType.Image);
                 // var movieURL = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Movie, EnumObject.FileType.Video);
                 var thumbnail = "";
-                var coverImage="";
-                var movieURL="";
+                var coverImage = "";
+                var movieURL = "";
                 var movieInformation = new MovieInformation
                 {
                     MovieName = postMovieModel.MovieName,
@@ -500,6 +510,7 @@ namespace MovieAPI.Controllers
                                 MovieID = movieInformation.MovieID
                             });
                         }
+                        logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataSuccess("MovieInformation"));
                         return Ok(new ApiResponse
                         {
                             IsSuccess = true,
@@ -507,18 +518,20 @@ namespace MovieAPI.Controllers
                         });
                     }
                 }
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", "Movies Not Found"));
                 return BadRequest(new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Upload movie information failed"
+                    Message = "Movies Not Found"
                 });
             }
-            catch
+            catch(Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Upload movie information failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -528,13 +541,14 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var movieInformation = _db.MovieInformations.Find(postMovieModel.MovieID);
                 // var thumbnail = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Thumbnail, EnumObject.FileType.Image);
                 // var coverImage = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.CoverImage, EnumObject.FileType.Image);
                 // var movieURL = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Movie, EnumObject.FileType.Video);
                 var thumbnail = "";
-                var coverImage="";
-                var movieURL="";
+                var coverImage = "";
+                var movieURL = "";
                 movieInformation.MovieName = postMovieModel.MovieName;
                 movieInformation.Description = postMovieModel.Description;
                 movieInformation.Thumbnail = thumbnail;
@@ -568,6 +582,7 @@ namespace MovieAPI.Controllers
                                 MovieID = movieInformation.MovieID
                             });
                         }
+                        logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataSuccess("MovieInformation"));
                         return Ok(new ApiResponse
                         {
                             IsSuccess = true,
@@ -575,18 +590,20 @@ namespace MovieAPI.Controllers
                         });
                     }
                 }
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", "Movies Not Found"));
                 return BadRequest(new ApiResponse
                 {
                     IsSuccess = false,
                     Message = "Upload movie information failed"
                 });
             }
-            catch
+            catch(Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Upload movie information failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -596,9 +613,11 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var movieInformation = _db.MovieInformations.Find(movieID);
                 if (movieInformation == null)
                 {
+                    logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -617,12 +636,13 @@ namespace MovieAPI.Controllers
                     Message = "Delete movie success"
                 });
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Internal server error"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -630,11 +650,13 @@ namespace MovieAPI.Controllers
         [HttpPut]
         public IActionResult UpdateMovieStatus([FromBody] (Guid movieID, bool isVisible) parameters)
         {
+            logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             try
             {
                 var movie = _db.MovieInformations.Find(parameters.movieID);
                 if (movie == null)
                 {
+                    logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -654,23 +676,27 @@ namespace MovieAPI.Controllers
                     Message = "Update status movie success"
                 });
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = ""
+                    Message = "Internal Server Error"
                 });
             }
         }
         [HttpGet]
         public IActionResult GetTotalMovie()
         {
+
+            logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             try
             {
                 var totalMovie = _db.MovieInformations.Count();
                 if (totalMovie == 0)
                 {
+                    logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -684,18 +710,20 @@ namespace MovieAPI.Controllers
                     Data = totalMovie
                 });
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = ""
+                    Message = "Internal Server Error"
                 });
             }
         }
         [ApiExplorerSettings(IgnoreApi = true)]
         public MovieDTO calculateRating(MovieDTO movieDTO)
         {
+            logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             // calculate rating
             var rating = _db.Reviews.Where(review => review.MovieID.Equals(movieDTO.MovieID)).Sum(review => review.Rating);
             var count = _db.Reviews.Where(review => review.MovieID.Equals(movieDTO.MovieID)).Count();
@@ -708,6 +736,7 @@ namespace MovieAPI.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         public MovieDTO getGenreName(MovieDTO movieDTO)
         {
+            logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             var genres = _db.Genres.Where(genre => movieDTO.Genres.Contains(genre.GenreID.ToString()))
                 .Select(genre => genre.GenreName).ToList();
             movieDTO.Genres = genres;

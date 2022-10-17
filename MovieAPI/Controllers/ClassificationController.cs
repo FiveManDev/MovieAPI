@@ -4,6 +4,8 @@ using MovieAPI.Data;
 using MovieAPI.Data.DbConfig;
 using MovieAPI.Models.DTO;
 using MovieAPI.Models;
+using System.Reflection;
+using MovieAPI.Helpers;
 
 namespace MovieAPI.Controllers
 {
@@ -14,30 +16,31 @@ namespace MovieAPI.Controllers
     {
         private readonly MovieAPIDbContext context;
         private readonly IMapper mapper;
-        public ClassificationController(MovieAPIDbContext db, IMapper mapper)
+        private readonly ILogger<ClassificationController> logger;
+        public ClassificationController(MovieAPIDbContext db, IMapper mapper, ILogger<ClassificationController> logger)
         {
             context = db;
             this.mapper = mapper;
+            this.logger = logger;
         }
         [HttpGet]
         public IActionResult GetAll()
         {
             try
             {
-                IEnumerable<Classification> classifications = context.Classifications.ToList();
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var classifications = context.Classifications.ToList();
                 if (classifications == null)
                 {
+                    logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Classification", "Classification is empty"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
-                        Message = "Cannot Get All classification! Something wrong!"
+                        Message = "Classification is empty"
                     });
                 }
-                List<ClassificationDTO> classificationDTOs = new List<ClassificationDTO>();
-                foreach (var classification in classifications)
-                {
-                    classificationDTOs.Add(mapper.Map<Classification, ClassificationDTO>(classification));
-                }
+                var classificationDTOs = mapper.Map<List<Classification>,List<ClassificationDTO>>(classifications);
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("Classification",classifications.Count()));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -45,12 +48,13 @@ namespace MovieAPI.Controllers
                     Data = classificationDTOs
                 });
             }
-            catch
+            catch(Exception ex)
             {
-                return NotFound(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Classification", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Cannot Get All classification! Something wrong!"
+                    Message = "Internal Server Error"
                 });
             }
         }

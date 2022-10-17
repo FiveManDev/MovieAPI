@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using MovieAPI.Data;
 using MovieAPI.Data.DbConfig;
+using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
 using MovieAPI.Services.SignalR;
+using System.Reflection;
 
 namespace MovieAPI.Controllers
 {
@@ -21,23 +23,26 @@ namespace MovieAPI.Controllers
         private readonly MovieAPIDbContext context;
         private readonly IHubContext<ReviewHub> hub;
         private readonly IMapper mapper;
-        public ReviewController(MovieAPIDbContext db, IHubContext<ReviewHub> hub, IMapper mapper)
+        private readonly ILogger<ReviewController> logger;
+        public ReviewController(MovieAPIDbContext db, IHubContext<ReviewHub> hub, IMapper mapper, ILogger<ReviewController> logger)
         {
             context = db;
             this.hub = hub;
             this.mapper = mapper;
+            this.logger = logger;
         }
         [HttpGet]
         public IActionResult GetAllReviewsOfUser(Guid UserID)
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var listReviewData = context.Reviews
                     .Include(r => r.User.Profile)
                     .Include(r => r.MovieInformation)
                     .Where(r => r.UserID == UserID).ToList();
                 var listReview = mapper.Map<List<Review>, List<ReviewDTO>>(listReviewData);
-                
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Review",listReviewData.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -45,12 +50,13 @@ namespace MovieAPI.Controllers
                     Data = listReview
                 });
             }
-            catch
+            catch(Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Reviews", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Get all revie by moviewID failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -59,6 +65,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var reviews = context.Reviews
                     .Include(review => review.User.Profile)
                     .Include(review => review.MovieInformation)
@@ -68,6 +75,7 @@ namespace MovieAPI.Controllers
                     || review.ReviewContent.Contains(text))
                     .ToList();
                 var reviewDTO = mapper.Map<List<Review>, List<ReviewDTO>>(reviews);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Profile",reviews.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -75,28 +83,31 @@ namespace MovieAPI.Controllers
                     Data = reviewDTO
                 });
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Reviews", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = ""
+                    Message = "Internal Server Error"
                 });
             }
         }
         [HttpGet] 
         public IActionResult GetTopLastestReview(int top)
         {
+            logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             try
             {
                 return Ok("");
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Reviews", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = ""
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -105,6 +116,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var review = new Review
                 {
                     Title= reviewDTO.Title,
@@ -118,9 +130,10 @@ namespace MovieAPI.Controllers
                 var returnValue = context.SaveChanges();
                 if (returnValue== 0)
                 {
-                    throw new Exception("Create new review failed");
+                    throw new Exception("Save data of review failed");
                 }
                 await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("SendReview", review);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataSuccess("Profile"));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -128,12 +141,13 @@ namespace MovieAPI.Controllers
                     Data = review.ReviewID
                 });
             }
-            catch
+            catch(Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError("Reviews", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Create new review failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -142,6 +156,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var review = new Review
                 {
                     ReviewID =reviewDTO.ReviewID,
@@ -156,21 +171,23 @@ namespace MovieAPI.Controllers
                 var returnValue = context.SaveChanges();
                 if (returnValue == 0)
                 {
-                    throw new Exception("Update review failed");
+                    throw new Exception("Save data of review failed");
                 }
                 await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("UpdateReview", review);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.PutDataSuccess("Review",1));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Update review success"
                 });
             }
-            catch
+            catch(Exception ex)
             {
-                return Ok(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PutDataError("Reviews", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Update review failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -179,10 +196,12 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var review = context.Reviews.SingleOrDefault(r => r.ReviewID == ReviewID);
                 if (review == null)
                 {
-                    return BadRequest(new ApiResponse
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.DeleteDataError("Review", "Review not found"));
+                    return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
                         Message = "Review not found"
@@ -195,18 +214,20 @@ namespace MovieAPI.Controllers
                     throw new Exception("Delete review failed");
                 }
                 await hub.Clients.Group(review.MovieID.ToString()).SendAsync("DeleteReview", ReviewID);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.DeleteDataSuccess("Review",1));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Delete review success"
                 });
             }
-            catch
+            catch(Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.DeleteDataError("Reviews", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Delete review failed"
+                    Message = "Internal Server Error"
                 });
             }
         }

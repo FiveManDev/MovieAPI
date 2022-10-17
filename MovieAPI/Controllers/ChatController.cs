@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using MovieAPI.Data;
 using MovieAPI.Data.DbConfig;
+using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
 using MovieAPI.Services.SignalR;
-using Serilog.Context;
+using System.Reflection;
 
 namespace MovieAPI.Controllers
 {
@@ -19,19 +20,22 @@ namespace MovieAPI.Controllers
         private readonly MovieAPIDbContext context;
         private readonly IHubContext<ChatHub> hub;
         private readonly IMapper mapper;
-        public ChatController(MovieAPIDbContext db, IHubContext<ChatHub> hub, IMapper mapper)
+        private readonly ILogger<ChatController> logger;
+        public ChatController(MovieAPIDbContext db, IHubContext<ChatHub> hub, IMapper mapper, ILogger<ChatController> logger)
         {
             context = db;
             this.hub = hub;
             this.mapper = mapper;
+            this.logger = logger;
         }
         [Authorize]
         [HttpGet]
         public IActionResult GetTopChat(int top)
         {
+            logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             try
             {
-                var tickets = context.Tickets.Select(t=>t.GroupID).Distinct().Take(top).ToList();
+                var tickets = context.Tickets.Select(t => t.GroupID).Distinct().Take(top).ToList();
                 return Ok(tickets);
             }
             catch
@@ -45,33 +49,33 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var tickets = context.Tickets.Where(t => t.GroupID == GroupID).ToList();
                 if (tickets == null)
                 {
-                    return BadRequest(new ApiResponse
+                    logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Ticket", "Group not found"));
+                    return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
-                        Message="Get chat from group id failed"
+                        Message = "Group not found"
                     });
                 }
-                List<TicketDTO> ticketsDTOs = new List<TicketDTO>();
-                foreach(var ticket in tickets)
-                {
-                    ticketsDTOs.Add(mapper.Map<Ticket,TicketDTO>(ticket));
-                }
+                var ticketsDTOs = mapper.Map<List<Ticket>, List<TicketDTO>>(tickets);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Ticket", tickets.Count));
                 return Ok(new ApiResponse
                 {
-                    IsSuccess=true,
-                    Message= "Get chat message success",
-                    Data= ticketsDTOs
+                    IsSuccess = true,
+                    Message = "Get chat message success",
+                    Data = ticketsDTOs
                 });
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500,new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Ticket", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Get Chat Message failed"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -79,9 +83,9 @@ namespace MovieAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> SendMessageFromUser([FromBody] ChatModel chatModel)
         {
-
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var ticket = new Ticket
                 {
                     SenderId = chatModel.GroupID,
@@ -94,25 +98,23 @@ namespace MovieAPI.Controllers
                 var returnValue = context.SaveChanges();
                 if (returnValue == 0)
                 {
-                    return StatusCode(500, new ApiResponse
-                    {
-                        IsSuccess = false,
-                        Message = "Something went wrong"
-                    });
+                    throw new Exception("Save data to of ticket database failed");
                 }
                 await hub.Clients.Group(chatModel.GroupID.ToString()).SendAsync("SendMessage", chatModel.Message);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataSuccess("Ticket"));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Send message success"
                 });
             }
-            catch 
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError("Ticket", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Something went wrong"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -122,6 +124,7 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var ticket = new Ticket
                 {
                     SenderId = chatModel.AdminID,
@@ -135,25 +138,23 @@ namespace MovieAPI.Controllers
                 var returnValue = context.SaveChanges();
                 if (returnValue == 0)
                 {
-                    return StatusCode(500, new ApiResponse
-                    {
-                        IsSuccess = false,
-                        Message = "Something went wrong"
-                    });
+                    throw new Exception("Save data to of ticket database failed");
                 }
                 await hub.Clients.Group(chatModel.GroupID.ToString()).SendAsync("SendMessage", chatModel.Message);
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Ticket"));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Send message success"
                 });
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError("Ticket", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Something went wrong"
+                    Message = "Internal Server Error"
                 });
             }
         }

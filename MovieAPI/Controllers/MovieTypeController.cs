@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MovieAPI.Data;
 using MovieAPI.Data.DbConfig;
+using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
+using System.Reflection;
 
 namespace MovieAPI.Controllers
 {
@@ -15,27 +16,31 @@ namespace MovieAPI.Controllers
     {
         private readonly IMapper mapper;
         private readonly MovieAPIDbContext context;
-
-        public MovieTypeController(IMapper mapper, MovieAPIDbContext context)
+        private readonly ILogger<MovieTypeController> logger;
+        public MovieTypeController(IMapper mapper, MovieAPIDbContext context, ILogger<MovieTypeController> logger)
         {
             this.mapper = mapper;
             this.context = context;
+            this.logger = logger;
         }
         [HttpGet]
         public IActionResult GetAll()
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var movieTypes = context.MovieTypes.ToList();
                 if (movieTypes == null)
                 {
-                    throw new Exception("Data is null");
+                    logger.LogError(MethodBase.GetCurrentMethod().Name.GetDataError("MovieType", "Movie Type is empty"));
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message= "Movie Type is empty"
+                    });
                 }
-                List<MovieTypeDTO> movieTypeDTOs = new List<MovieTypeDTO>();
-                foreach (var movieType in movieTypes)
-                {
-                    movieTypeDTOs.Add(mapper.Map<MovieType,MovieTypeDTO>(movieType));
-                }
+                var movieTypeDTOs = mapper.Map<List<MovieType>, List<MovieTypeDTO>>(movieTypes);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieType",movieTypes.Count()));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -43,12 +48,13 @@ namespace MovieAPI.Controllers
                     Data = movieTypeDTOs
                 });
             }
-            catch
+            catch(Exception ex)
             {
-                return BadRequest(new ApiResponse
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieType", ex.ToString()));
+                return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Get all movie type failed"
+                    Message = "Internal Server Error"
                 });
             }
         }

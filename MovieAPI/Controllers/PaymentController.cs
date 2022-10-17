@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MovieAPI.Data.DbConfig;
+using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Services.MomoPayment;
 using Newtonsoft.Json.Linq;
+using System.Reflection;
 using System.Web;
 
 namespace MovieAPI.Controllers
@@ -14,44 +16,49 @@ namespace MovieAPI.Controllers
     public class PaymentController : ControllerBase
     {
         private readonly MovieAPIDbContext context;
-
-        public PaymentController(MovieAPIDbContext context)
+        private readonly ILogger<PaymentController> logger;
+        public PaymentController(MovieAPIDbContext context, ILogger<PaymentController> logger)
         {
             this.context = context;
+            this.logger = logger;
         }
         [HttpGet]
         public IActionResult GetTotalMoney()
         {
             try
             {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var maxClassLevel = context.Classifications
                     .OrderBy(context => context.ClassLevel)
                     .First();
                 var totalProfile = context.Profiles
-                    .Where(context=>context.ClassID==maxClassLevel.ClassID)
+                    .Where(context => context.ClassID == maxClassLevel.ClassID)
                     .Count();
-                if(totalProfile == 0)
+                if (totalProfile == 0)
                 {
+                    logger.LogError(MethodBase.GetCurrentMethod().Name.GetDataError("Profile", "No users of Premium tier yet"));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
                         Message = "No users of Premium tier yet"
                     });
                 }
-                var totalMoney = totalProfile* maxClassLevel.ClassPrice;
+                var totalMoney = totalProfile * maxClassLevel.ClassPrice;
+                logger.LogError(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Profile", totalProfile));
                 return Ok(new ApiResponse
                 {
-                    IsSuccess =true,
+                    IsSuccess = true,
                     Message = "Get total money success",
                     Data = totalMoney
                 });
             }
-            catch
+            catch(Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Classification", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
-                    Message = "Movies Not Found"
+                    Message = "Internal Server Error"
                 });
             }
         }
@@ -65,7 +72,7 @@ namespace MovieAPI.Controllers
                     throw new Exception("Data is null");
                 }
                 var paymentUrl = await MomoConnection.MomoResponse(paymentModel);
-                if(paymentUrl == null)
+                if (paymentUrl == null)
                 {
                     throw new Exception("Get payment url failed");
                 }
