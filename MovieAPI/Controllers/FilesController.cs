@@ -26,7 +26,7 @@ namespace MovieAPI.Controllers
             logger = _logger;
         }
         [HttpPost]
-        public async Task<IActionResult> UploadFile(IFormFile file)
+        public async Task<IActionResult> UploadFile(IFormFile file,List<int> a)
         {
             try
             {

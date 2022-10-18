@@ -11,13 +11,14 @@ using MovieAPI.Models;
 using MovieAPI.Models.DTO;
 using MovieAPI.Services.SignalR;
 using System.Reflection;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace MovieAPI.Controllers
 {
     [Route("api/v{version:apiVersion}/[controller]/[Action]")]
     [ApiController]
     [ApiVersion("1")]
-    [Authorize]
+    //[Authorize]
     public class ReviewController : ControllerBase
     {
         private readonly MovieAPIDbContext context;
@@ -42,7 +43,7 @@ namespace MovieAPI.Controllers
                     .Include(r => r.MovieInformation)
                     .Where(r => r.UserID == UserID).ToList();
                 var listReview = mapper.Map<List<Review>, List<ReviewDTO>>(listReviewData);
-                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Review",listReviewData.Count));
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Review", listReviewData.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -50,7 +51,7 @@ namespace MovieAPI.Controllers
                     Data = listReview
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Reviews", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -75,7 +76,7 @@ namespace MovieAPI.Controllers
                     || review.ReviewContent.Contains(text))
                     .ToList();
                 var reviewDTO = mapper.Map<List<Review>, List<ReviewDTO>>(reviews);
-                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Profile",reviews.Count));
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Profile", reviews.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -83,7 +84,7 @@ namespace MovieAPI.Controllers
                     Data = reviewDTO
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Reviews", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -93,15 +94,87 @@ namespace MovieAPI.Controllers
                 });
             }
         }
-        [HttpGet] 
-        public IActionResult GetTopLastestReview(int top)
+        [HttpGet]
+        public IActionResult GetReviewSortByDateCreate()
         {
-            logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             try
             {
-                return Ok("");
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var reviews = context.Reviews
+                    .Include(review => review.User.Profile)
+                    .Include(review => review.MovieInformation)
+                    .OrderByDescending(review => review.ReviewTime)
+                    .ToList();
+                var reviewDTO = mapper.Map<List<Review>, List<ReviewDTO>>(reviews);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Reviews", reviews.Count));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get top lastest review time",
+                    Data = reviewDTO
+                });
             }
-            catch(Exception ex)
+            catch (Exception ex)
+            {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Reviews", ex.ToString()));
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal Server Error"
+                });
+            }
+        }
+        [HttpGet]
+        public IActionResult GetReviewSortByRating()
+        {
+            try
+            {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var reviews = context.Reviews
+                    .Include(review => review.User.Profile)
+                    .Include(review => review.MovieInformation)
+                    .OrderByDescending(review => review.Rating)
+                    .ToList();
+                var reviewDTO = mapper.Map<List<Review>, List<ReviewDTO>>(reviews);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Reviews", reviews.Count));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get top lastest review time",
+                    Data = reviewDTO
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Reviews", ex.ToString()));
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal Server Error"
+                });
+            }
+        }
+        [HttpGet]
+        public IActionResult GetTopLastestReview(int top)
+        {
+            try
+            {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var reviews = context.Reviews
+                    .Include(review => review.User.Profile)
+                    .Include(review => review.MovieInformation)
+                    .OrderBy(review => review.ReviewTime)
+                    .Take(top).ToList();
+                var reviewDTO = mapper.Map<List<Review>, List<ReviewDTO>>(reviews);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Reviews", reviews.Count));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get top lastest review time",
+                    Data = reviewDTO
+                });
+            }
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Reviews", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -119,16 +192,16 @@ namespace MovieAPI.Controllers
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var review = new Review
                 {
-                    Title= reviewDTO.Title,
-                    ReviewContent=reviewDTO.ReviewContent,
-                    Rating= reviewDTO.Rating,
-                    ReviewTime =reviewDTO.ReviewTime,
+                    Title = reviewDTO.Title,
+                    ReviewContent = reviewDTO.ReviewContent,
+                    Rating = reviewDTO.Rating,
+                    ReviewTime = reviewDTO.ReviewTime,
                     UserID = reviewDTO.UserID,
                     MovieID = reviewDTO.UserID
                 };
                 context.Reviews.Add(review);
                 var returnValue = context.SaveChanges();
-                if (returnValue== 0)
+                if (returnValue == 0)
                 {
                     throw new Exception("Save data of review failed");
                 }
@@ -141,7 +214,7 @@ namespace MovieAPI.Controllers
                     Data = review.ReviewID
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError("Reviews", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -159,7 +232,7 @@ namespace MovieAPI.Controllers
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var review = new Review
                 {
-                    ReviewID =reviewDTO.ReviewID,
+                    ReviewID = reviewDTO.ReviewID,
                     Title = reviewDTO.Title,
                     ReviewContent = reviewDTO.ReviewContent,
                     Rating = reviewDTO.Rating,
@@ -174,14 +247,14 @@ namespace MovieAPI.Controllers
                     throw new Exception("Save data of review failed");
                 }
                 await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("UpdateReview", review);
-                logger.LogInformation(MethodBase.GetCurrentMethod().Name.PutDataSuccess("Review",1));
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.PutDataSuccess("Review", 1));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Update review success"
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.PutDataError("Reviews", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -214,14 +287,14 @@ namespace MovieAPI.Controllers
                     throw new Exception("Delete review failed");
                 }
                 await hub.Clients.Group(review.MovieID.ToString()).SendAsync("DeleteReview", ReviewID);
-                logger.LogInformation(MethodBase.GetCurrentMethod().Name.DeleteDataSuccess("Review",1));
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.DeleteDataSuccess("Review", 1));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Delete review success"
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.DeleteDataError("Reviews", ex.ToString()));
                 return StatusCode(500, new ApiResponse

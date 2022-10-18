@@ -8,6 +8,7 @@ using MovieAPI.Data.DbConfig;
 using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace MovieAPI.Controllers
@@ -17,11 +18,11 @@ namespace MovieAPI.Controllers
     [ApiVersion("1")]
     public class MovieController : ControllerBase
     {
-        private readonly ILogger<UserController> logger;
+        private readonly ILogger<MovieController> logger;
         private readonly IMapper _mapper;
         private readonly MovieAPIDbContext _db;
         private readonly IAmazonS3 s3Client;
-        public MovieController(ILogger<UserController> iLogger, IMapper mapper, MovieAPIDbContext db, IAmazonS3 amazonS3)
+        public MovieController(ILogger<MovieController> iLogger, IMapper mapper, MovieAPIDbContext db, IAmazonS3 amazonS3)
         {
             logger = iLogger;
             _mapper = mapper;
@@ -326,50 +327,176 @@ namespace MovieAPI.Controllers
         [HttpGet]
         public IActionResult GetMovieBaseOnTopRating(int top)
         {
-            logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             try
             {
-                //if (top <= 0) top = 6;
-                //if (top > 10) top = 10;
-                //var MovieID = _db.Reviews
-                //    .Select(review => review.MovieID)
-                //    .Distinct()
-                //    .ToList();
-                //List<Guid> listID = null;
-                //foreach(var movie in MovieID)
-                //{
-                //    var rating = _db.Reviews.Where(review => review.MovieID==movie).Sum(review => review.Rating);
-                //    var count = _db.Reviews.Where(review => review.MovieID == movie).Count();
-                //    listI
-                //}
-                //var movie = _db.Reviews
-                //    .Include(review=>review.MovieInformation)
-                //    .Include(re)
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var movies = new List<MovieInformation>();
+                var listID= getTopRating(top);
+                foreach(var dTO in listID)
+                {
+                    var movie = _db.MovieInformations
+                    .Include(m => m.User.Profile)
+                    .Include(m => m.Classification)
+                    .Include(m => m.MovieType)
+                    .Include(m => m.MovieGenreInformations)
+                    .SingleOrDefault(m=>m.MovieID==dTO.MovieID);
+                    movies.Add(movie);
+                }
+                if (movies == null)
+                {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Movies Not Found"
+                    });
+                }
 
-                //if (movies == null)
-                //{
-                //    return NotFound(new ApiResponse
-                //    {
-                //        IsSuccess = false,
-                //        Message = "Movies Not Found"
-                //    });
-                //}
-                return Ok("");
-                //var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
-                //movieDTOs.ForEach(movieDTO =>
-                //{
-                //    movieDTO = calculateRating(movieDTO);
-                //    movieDTO = getGenreName(movieDTO);
-                //});
-                //return Ok(new ApiResponse
-                //{
-                //    IsSuccess = true,
-                //    Data = movieDTOs
-                //});
-
+                var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+                movieDTOs.ForEach(movieDTO =>
+                {
+                    movieDTO = calculateRating(movieDTO);
+                    movieDTO = getGenreName(movieDTO);
+                });
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformations", movieDTOs.Count));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get Top Latest Release Movies Success",
+                    Data = movieDTOs
+                });
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal Server Error"
+                });
+            }
+        }
+        [HttpGet]
+        public IActionResult GetMovieBaseOnFilter(Guid genreID,string quality,float ratingMin, float ratingMax, int releaseTimeMin, int releaseTimeMax)
+        {
+            try
+            {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var listTopRating = _db.Reviews.Distinct().ToList();
+                var listmovieID = new List<MovieDTO>();
+                foreach (var item in listTopRating)
+                {
+                    var movieDto = new MovieDTO();
+                    movieDto.MovieID = item.MovieID;
+                    listmovieID.Add(calculateRating(movieDto));
+                }
+           
+                var listID = listmovieID.Where(movieDTO => movieDTO.Rating >= ratingMin
+                 && movieDTO.Rating<= ratingMax).ToList();
+                if(listID == null)
+                {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Movies Not Found"
+                    });
+                }
+                var movies = new List<MovieInformation>();
+                foreach (var dTO in listID)
+                {
+                    var movie = _db.MovieInformations
+                    .Include(m => m.User.Profile)
+                    .Include(m => m.Classification)
+                    .Include(m => m.MovieType)
+                    .Include(m => m.MovieGenreInformations)
+                    .SingleOrDefault(m => m.MovieID == dTO.MovieID
+                    && m.Quality.Equals(quality)
+                    && m.ReleaseTime.Year > releaseTimeMin
+                    && m.ReleaseTime.Year > releaseTimeMax
+                    );
+                   var check= movie.MovieGenreInformations.Any(mg => mg.GenreID == genreID);
+                   if(check)movies.Add(movie);
+                }
+                if (movies == null)
+                {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Movies Not Found"
+                    });
+                }
+
+                var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+                movieDTOs.ForEach(movieDTO =>
+                {
+                    movieDTO = calculateRating(movieDTO);
+                    movieDTO = getGenreName(movieDTO);
+                });
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformations", movieDTOs.Count));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get Top Latest Release Movies Success",
+                    Data = movieDTOs
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal Server Error"
+                });
+            }
+        }
+        [HttpGet]
+        public IActionResult GetMovieSortByRating()
+        {
+            try
+            {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var movies = new List<MovieInformation>();
+                var listID = getTopRating(0);
+                foreach (var dTO in listID)
+                {
+                    var movie = _db.MovieInformations
+                    .Include(m => m.User.Profile)
+                    .Include(m => m.Classification)
+                    .Include(m => m.MovieType)
+                    .Include(m => m.MovieGenreInformations)
+                    .SingleOrDefault(m => m.MovieID == dTO.MovieID);
+                    movies.Add(movie);
+                }
+                if (movies == null)
+                {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Movies Not Found"
+                    });
+                }
+
+                var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+                movieDTOs.ForEach(movieDTO =>
+                {
+                    movieDTO = calculateRating(movieDTO);
+                    movieDTO = getGenreName(movieDTO);
+                });
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformations", movieDTOs.Count));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get Top Latest Release Movies Success",
+                    Data = movieDTOs
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
@@ -434,7 +561,59 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+        [HttpGet]
+        public IActionResult GetMoviesBasedOnSearchTextInCatalog(string searchText)
+        {
+            try
+            {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var movies = _db.MovieInformations
+                    .Include(movie => movie.User.Profile)
+                    .Include(movie => movie.Classification)
+                    .Include(movie => movie.MovieType)
+                    .Include(movie => movie.MovieGenreInformations)
+                    .Where(movie => movie.MovieName.Contains(searchText)
+                        || movie.Description.Contains(searchText)
+                        || movie.Actor.Contains(searchText)
+                        || movie.Director.Contains(searchText)
+                        || movie.ReleaseTime.ToString().Contains(searchText))
+                    .ToList();
 
+                if (movies == null)
+                {
+                    logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", "Movies Not Found"));
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Movies Not Found"
+                    });
+                }
+
+                var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+                movieDTOs.ForEach(movieDTO =>
+                {
+                    movieDTO = calculateRating(movieDTO);
+                    movieDTO = getGenreName(movieDTO);
+                });
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformatio", movieDTOs.Count));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = movieDTOs.Count() == 0 ? "Empty!" : "",
+                    Data = movieDTOs
+                });
+
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal Server Error"
+                });
+            }
+        }
         [HttpGet]
         public IActionResult GetTotalNumberOfMovies()
         {
@@ -741,6 +920,24 @@ namespace MovieAPI.Controllers
                 .Select(genre => genre.GenreName).ToList();
             movieDTO.Genres = genres;
             return movieDTO;
+        }
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public List<MovieDTO> getTopRating(int top)
+        {
+            logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+            var listTopRating = _db.Reviews.Distinct().ToList();
+            var listID = new List<MovieDTO>();
+            foreach (var item in listTopRating)
+            {
+                var movieDto = new MovieDTO();
+                movieDto.MovieID = item.MovieID;
+                listID.Add(calculateRating(movieDto));
+            }
+            if(top > 0)
+            {
+                return listID.OrderByDescending(movieDTO => movieDTO.Rating).Take(top).ToList();
+            }
+            return listID.OrderByDescending(movieDTO => movieDTO.Rating).ToList();
         }
 
     }
