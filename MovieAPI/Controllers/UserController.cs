@@ -578,8 +578,8 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                Guid UserID = data["UserID"].ToObject<Guid>();
-                bool IsBanned = data["IsBanned"].ToObject<bool>();
+                Guid UserID = data["userID"].ToObject<Guid>();
+                bool IsBanned = data["isBanned"].ToObject<bool>();
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var user = _db.Users.Find(UserID);
                 if (user == null)

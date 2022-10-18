@@ -833,7 +833,7 @@ namespace MovieAPI.Controllers
             try
             {
                 Guid movieID = data["movieID"].ToObject<Guid>();
-                bool isVisible = data["movieID"].ToObject<bool>();
+                bool isVisible = data["isVisible"].ToObject<bool>();
                 var movie = _db.MovieInformations.Find(movieID);
                 if (movie == null)
                 {

@@ -269,9 +269,9 @@ namespace MovieAPI.Controllers
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                Guid UserID = data["UserID"].ToObject<Guid>();
-                string FirstName = data["FirstName"].ToObject<string>();
-                string LastName = data["LastName"].ToObject<string>();
+                Guid UserID = data["userID"].ToObject<Guid>();
+                string FirstName = data["firstName"].ToObject<string>();
+                string LastName = data["lastName"].ToObject<string>();
                 var profile = context.Profiles.SingleOrDefault(pro => pro.UserID == UserID);
                 if (profile == null)
                 {
@@ -315,11 +315,11 @@ namespace MovieAPI.Controllers
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                Guid UserID = data["UserID"].ToObject<Guid>();
-                string FirstName = data["FirstName"].ToObject<string>();
-                string LastName = data["LastName"].ToObject<string>();
-                Guid ClassID = data["ClassID"].ToObject<Guid>();
-                Guid AuthorizationID = data["AuthorizationID"].ToObject<Guid>();
+                Guid UserID = data["userID"].ToObject<Guid>();
+                string FirstName = data["firstName"].ToObject<string>();
+                string LastName = data["lastName"].ToObject<string>();
+                Guid ClassID = data["classID"].ToObject<Guid>();
+                Guid AuthorizationID = data["authorizationID"].ToObject<Guid>();
                 var user = context.Users
                     .Include(user => user.Profile)
                     .SingleOrDefault(user => user.UserID == UserID);
