@@ -36,11 +36,11 @@ namespace MovieAPI.Controllers
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
-                        Message= "Movie Type is empty"
+                        Message = "Movie Type is empty"
                     });
                 }
                 var movieTypeDTOs = mapper.Map<List<MovieType>, List<MovieTypeDTO>>(movieTypes);
-                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieType",movieTypes.Count()));
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieType", movieTypes.Count()));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -48,7 +48,7 @@ namespace MovieAPI.Controllers
                     Data = movieTypeDTOs
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieType", ex.ToString()));
                 return StatusCode(500, new ApiResponse

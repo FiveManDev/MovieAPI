@@ -32,7 +32,7 @@ namespace MovieAPI.Controllers
                 var genres = context.Genres.ToList();
                 if (genres == null)
                 {
-                    logger.LogError(MethodBase.GetCurrentMethod().Name.GetDataError("Genre",""));
+                    logger.LogError(MethodBase.GetCurrentMethod().Name.GetDataError("Genre", ""));
                     return NotFound(new ApiResponse
                     {
                         IsSuccess = false,
@@ -48,7 +48,7 @@ namespace MovieAPI.Controllers
                     Data = genreDTOs
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Genre", ex.ToString()));
                 return StatusCode(500, new ApiResponse

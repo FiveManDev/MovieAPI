@@ -12,6 +12,7 @@ using MovieAPI.Services;
 using MovieAPI.Services.Mail;
 using MovieWebApp.Models;
 using MovieWebApp.Utility.Extension;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Text;
@@ -573,12 +574,14 @@ namespace MovieAPI.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpPut]
-        public IActionResult ChangeUserStatus([FromBody] (Guid UserID, bool IsBanned) parameters)
+        public IActionResult ChangeUserStatus([FromBody] JObject data)
         {
             try
             {
+                Guid UserID = data["UserID"].ToObject<Guid>();
+                bool IsBanned = data["IsBanned"].ToObject<bool>();
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                var user = _db.Users.Find(parameters.UserID);
+                var user = _db.Users.Find(UserID);
                 if (user == null)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("User", "User not found"));
@@ -588,7 +591,7 @@ namespace MovieAPI.Controllers
                         Message = "User not found"
                     });
                 }
-                user.Status = parameters.IsBanned;
+                user.Status = IsBanned;
                 _db.Users.Update(user);
                 var returnValue = _db.SaveChanges();
                 if (returnValue == 0)

@@ -86,20 +86,20 @@ namespace MovieAPI.Controllers
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                var ticket = new Ticket
-                {
-                    SenderId = chatModel.GroupID,
-                    IsFromAdmin = false,
-                    MessageContent = chatModel.Message,
-                    MessageTime = DateTime.Now,
-                    GroupID = chatModel.GroupID
-                };
-                context.Tickets.Add(ticket);
-                var returnValue = context.SaveChanges();
-                if (returnValue == 0)
-                {
-                    throw new Exception("Save data to of ticket database failed");
-                }
+                // var ticket = new Ticket
+                // {
+                //     SenderId = chatModel.GroupID,
+                //     IsFromAdmin = false,
+                //     MessageContent = chatModel.Message,
+                //     MessageTime = DateTime.Now,
+                //     GroupID = chatModel.GroupID
+                // };
+                // context.Tickets.Add(ticket);
+                // var returnValue = context.SaveChanges();
+                // if (returnValue == 0)
+                // {
+                //     throw new Exception("Save data to of ticket database failed");
+                // }
                 await hub.Clients.Group(chatModel.GroupID.ToString()).SendAsync("SendMessage", chatModel.Message);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataSuccess("Ticket"));
                 return Ok(new ApiResponse

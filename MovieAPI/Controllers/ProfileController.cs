@@ -7,6 +7,7 @@ using MovieAPI.Data.DbConfig;
 using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
+using Newtonsoft.Json.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
@@ -263,12 +264,15 @@ namespace MovieAPI.Controllers
         }
         [Authorize]
         [HttpPut]
-        public IActionResult UpdateProfileForUser([FromBody] (Guid UserID, string FirstName, string LastName) parameters)
+        public IActionResult UpdateProfileForUser([FromBody] JObject data)
         {
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                var profile = context.Profiles.SingleOrDefault(pro => pro.UserID == parameters.UserID);
+                Guid UserID = data["UserID"].ToObject<Guid>();
+                string FirstName = data["FirstName"].ToObject<string>();
+                string LastName = data["LastName"].ToObject<string>();
+                var profile = context.Profiles.SingleOrDefault(pro => pro.UserID == UserID);
                 if (profile == null)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.PutDataError("Profile", "Profile not found"));
@@ -278,8 +282,8 @@ namespace MovieAPI.Controllers
                         Message = "Profile not found"
                     });
                 }
-                profile.FirstName = parameters.FirstName;
-                profile.LastName = parameters.LastName;
+                profile.FirstName = FirstName;
+                profile.LastName = LastName;
                 context.Profiles.Update(profile);
                 var returnValue = context.SaveChanges();
                 if (returnValue == 0)
@@ -305,15 +309,20 @@ namespace MovieAPI.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpPut]
-        public IActionResult UpdateProfileForAdmin([FromBody] (Guid UserID, string FirstName, string LastName, Guid ClassID, Guid AuthorizationID) parameters)
+        public IActionResult UpdateProfileForAdmin([FromBody] JObject data)
         {
-            
+
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                Guid UserID = data["UserID"].ToObject<Guid>();
+                string FirstName = data["FirstName"].ToObject<string>();
+                string LastName = data["LastName"].ToObject<string>();
+                Guid ClassID = data["ClassID"].ToObject<Guid>();
+                Guid AuthorizationID = data["AuthorizationID"].ToObject<Guid>();
                 var user = context.Users
                     .Include(user => user.Profile)
-                    .SingleOrDefault(user => user.UserID == parameters.UserID);
+                    .SingleOrDefault(user => user.UserID == UserID);
                 if (user == null)
                 {
                     logger.LogError(MethodBase.GetCurrentMethod().Name.PutDataError("Profile", "Profile Not found"));
@@ -324,10 +333,10 @@ namespace MovieAPI.Controllers
                     });
                 }
                 var profile = user.Profile;
-                profile.FirstName = parameters.FirstName;
-                profile.LastName = parameters.LastName;
-                profile.ClassID = parameters.ClassID;
-                user.AuthorizationID = parameters.AuthorizationID;
+                profile.FirstName = FirstName;
+                profile.LastName = LastName;
+                profile.ClassID = ClassID;
+                user.AuthorizationID = AuthorizationID;
                 context.Update(user);
                 var returnValue = context.SaveChanges();
                 if (returnValue == 0)

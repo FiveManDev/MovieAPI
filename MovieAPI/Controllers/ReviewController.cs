@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +9,6 @@ using MovieAPI.Models;
 using MovieAPI.Models.DTO;
 using MovieAPI.Services.SignalR;
 using System.Reflection;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace MovieAPI.Controllers
 {

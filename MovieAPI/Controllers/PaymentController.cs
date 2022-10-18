@@ -52,7 +52,7 @@ namespace MovieAPI.Controllers
                     Data = totalMoney
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Classification", ex.ToString()));
                 return StatusCode(500, new ApiResponse

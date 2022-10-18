@@ -21,7 +21,7 @@ var logger = new LoggerConfiguration()
     .CreateLogger();
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddNewtonsoftJson();
 //Add config database
 AppSettings.ConnectionString = builder.Configuration.GetConnectionString("MovieAPIConnection");
 builder.Services.AddDbContext<MovieAPIDbContext>(

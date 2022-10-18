@@ -8,7 +8,7 @@ using MovieAPI.Data.DbConfig;
 using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
-using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 using System.Reflection;
 
 namespace MovieAPI.Controllers
@@ -152,15 +152,15 @@ namespace MovieAPI.Controllers
                     movieDTO = calculateRating(movieDTO);
                     movieDTO = getGenreName(movieDTO);
                 });
-                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformations",movieDTOs.Count));
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformations", movieDTOs.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Message= "Get Top Latest Release Movies Success",
+                    Message = "Get Top Latest Release Movies Success",
                     Data = movieDTOs
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -203,7 +203,7 @@ namespace MovieAPI.Controllers
                     movieDTO = calculateRating(movieDTO);
                     movieDTO = getGenreName(movieDTO);
                 });
-                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformation",movies.Count));
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformation", movies.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -211,9 +211,9 @@ namespace MovieAPI.Controllers
                 });
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));   
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,
@@ -256,7 +256,7 @@ namespace MovieAPI.Controllers
                     movieDTO = calculateRating(movieDTO);
                     movieDTO = getGenreName(movieDTO);
                 });
-                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformation",movies.Count));
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformation", movies.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -265,7 +265,7 @@ namespace MovieAPI.Controllers
                 });
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -314,7 +314,7 @@ namespace MovieAPI.Controllers
                     Data = movieDTOs
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -331,15 +331,15 @@ namespace MovieAPI.Controllers
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var movies = new List<MovieInformation>();
-                var listID= getTopRating(top);
-                foreach(var dTO in listID)
+                var listID = getTopRating(top);
+                foreach (var dTO in listID)
                 {
                     var movie = _db.MovieInformations
                     .Include(m => m.User.Profile)
                     .Include(m => m.Classification)
                     .Include(m => m.MovieType)
                     .Include(m => m.MovieGenreInformations)
-                    .SingleOrDefault(m=>m.MovieID==dTO.MovieID);
+                    .SingleOrDefault(m => m.MovieID == dTO.MovieID);
                     movies.Add(movie);
                 }
                 if (movies == null)
@@ -377,7 +377,7 @@ namespace MovieAPI.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetMovieBaseOnFilter(Guid genreID,string quality,float ratingMin, float ratingMax, int releaseTimeMin, int releaseTimeMax)
+        public IActionResult GetMovieBaseOnFilter(Guid genreID, string quality, float ratingMin, float ratingMax, int releaseTimeMin, int releaseTimeMax)
         {
             try
             {
@@ -390,10 +390,10 @@ namespace MovieAPI.Controllers
                     movieDto.MovieID = item.MovieID;
                     listmovieID.Add(calculateRating(movieDto));
                 }
-           
+
                 var listID = listmovieID.Where(movieDTO => movieDTO.Rating >= ratingMin
-                 && movieDTO.Rating<= ratingMax).ToList();
-                if(listID == null)
+                 && movieDTO.Rating <= ratingMax).ToList();
+                if (listID == null)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -415,8 +415,8 @@ namespace MovieAPI.Controllers
                     && m.ReleaseTime.Year > releaseTimeMin
                     && m.ReleaseTime.Year > releaseTimeMax
                     );
-                   var check= movie.MovieGenreInformations.Any(mg => mg.GenreID == genreID);
-                   if(check)movies.Add(movie);
+                    var check = movie.MovieGenreInformations.Any(mg => mg.GenreID == genreID);
+                    if (check) movies.Add(movie);
                 }
                 if (movies == null)
                 {
@@ -542,7 +542,7 @@ namespace MovieAPI.Controllers
                     movieDTO = calculateRating(movieDTO);
                     movieDTO = getGenreName(movieDTO);
                 });
-                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformatio",movieDTOs.Count));
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformatio", movieDTOs.Count));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -551,7 +551,7 @@ namespace MovieAPI.Controllers
                 });
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -630,7 +630,7 @@ namespace MovieAPI.Controllers
                 });
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -704,7 +704,7 @@ namespace MovieAPI.Controllers
                     Message = "Movies Not Found"
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -776,7 +776,7 @@ namespace MovieAPI.Controllers
                     Message = "Upload movie information failed"
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -815,7 +815,7 @@ namespace MovieAPI.Controllers
                     Message = "Delete movie success"
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -827,12 +827,14 @@ namespace MovieAPI.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpPut]
-        public IActionResult UpdateMovieStatus([FromBody] (Guid movieID, bool isVisible) parameters)
+        public IActionResult UpdateMovieStatus([FromBody] JObject data)
         {
             logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             try
             {
-                var movie = _db.MovieInformations.Find(parameters.movieID);
+                Guid movieID = data["movieID"].ToObject<Guid>();
+                bool isVisible = data["movieID"].ToObject<bool>();
+                var movie = _db.MovieInformations.Find(movieID);
                 if (movie == null)
                 {
                     logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", "Movies Not Found"));
@@ -842,7 +844,7 @@ namespace MovieAPI.Controllers
                         Message = "Movie not found"
                     });
                 }
-                movie.IsVisible = parameters.isVisible;
+                movie.IsVisible = isVisible;
                 _db.MovieInformations.Update(movie);
                 var returnValue = _db.SaveChanges();
                 if (returnValue == 0)
@@ -855,7 +857,7 @@ namespace MovieAPI.Controllers
                     Message = "Update status movie success"
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -889,7 +891,7 @@ namespace MovieAPI.Controllers
                     Data = totalMovie
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
                 return StatusCode(500, new ApiResponse
@@ -933,7 +935,7 @@ namespace MovieAPI.Controllers
                 movieDto.MovieID = item.MovieID;
                 listID.Add(calculateRating(movieDto));
             }
-            if(top > 0)
+            if (top > 0)
             {
                 return listID.OrderByDescending(movieDTO => movieDTO.Rating).Take(top).ToList();
             }

@@ -1,15 +1,11 @@
 ﻿using Amazon.S3;
-using Amazon.S3.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
-using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Services.Attributes;
 using MovieAPI.Services.AWS;
 using MovieAPI.Services.Mail;
-using MovieAPI.Services.MomoPayment;
-using System.Reflection;
+using Newtonsoft.Json.Linq;
 
 namespace MovieAPI.Controllers
 {
@@ -42,7 +38,17 @@ namespace MovieAPI.Controllers
                 });
             }
         }
-
+        [HttpPost]
+        public IActionResult Text([FromBody] JObject data)
+        {
+            //int a = data["a"].ToObject<int>();
+            //int b = data["b"].ToObject<int>();
+            //var x = a+b;
+            //Console.WriteLine(data.ToString());
+                return Ok(data.ToString());
+            
+            
+        }
         [HttpGet]
         public async Task<IActionResult> GetAllFiles(string bucketName, string prefix)
         {

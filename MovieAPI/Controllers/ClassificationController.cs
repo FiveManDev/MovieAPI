@@ -39,8 +39,8 @@ namespace MovieAPI.Controllers
                         Message = "Classification is empty"
                     });
                 }
-                var classificationDTOs = mapper.Map<List<Classification>,List<ClassificationDTO>>(classifications);
-                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("Classification",classifications.Count()));
+                var classificationDTOs = mapper.Map<List<Classification>, List<ClassificationDTO>>(classifications);
+                logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("Classification", classifications.Count()));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
@@ -48,7 +48,7 @@ namespace MovieAPI.Controllers
                     Data = classificationDTOs
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Classification", ex.ToString()));
                 return StatusCode(500, new ApiResponse
