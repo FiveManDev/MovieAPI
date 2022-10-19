@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using MovieAPI.Data.DbConfig;
 using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
+using MovieAPI.Services.Attributes;
 using MovieAPI.Services.SignalR;
 using System.Reflection;
 
@@ -15,7 +17,8 @@ namespace MovieAPI.Controllers
     [Route("api/v{version:apiVersion}/[controller]/[Action]")]
     [ApiController]
     [ApiVersion("1")]
-    //[Authorize]
+    [Authorize]
+    [UserBanned]
     public class ReviewController : ControllerBase
     {
         private readonly MovieAPIDbContext context;
@@ -39,6 +42,35 @@ namespace MovieAPI.Controllers
                     .Include(r => r.User.Profile)
                     .Include(r => r.MovieInformation)
                     .Where(r => r.UserID == UserID).ToList();
+                var listReview = mapper.Map<List<Review>, List<ReviewDTO>>(listReviewData);
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Review", listReviewData.Count));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get all review by moviewID success",
+                    Data = listReview
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Reviews", ex.ToString()));
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal Server Error"
+                });
+            }
+        }
+        [HttpGet]
+        public IActionResult GetAllReviewsOfMovie(Guid MovieID)
+        {
+            try
+            {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var listReviewData = context.Reviews
+                    .Include(r => r.User.Profile)
+                    .Include(r => r.MovieInformation)
+                    .Where(r => r.MovieID == MovieID).ToList();
                 var listReview = mapper.Map<List<Review>, List<ReviewDTO>>(listReviewData);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Review", listReviewData.Count));
                 return Ok(new ApiResponse

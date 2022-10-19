@@ -9,6 +9,7 @@ using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
 using MovieAPI.Services;
+using MovieAPI.Services.Attributes;
 using MovieAPI.Services.Mail;
 using MovieWebApp.Models;
 using MovieWebApp.Utility.Extension;
@@ -171,6 +172,7 @@ namespace MovieAPI.Controllers
             }
         }
         [Authorize]
+        [UserBanned]
         [HttpPost]
         public ActionResult ChangePassword([FromBody] ChangePasswordDTO changePasswordDTO)
         {
@@ -249,6 +251,7 @@ namespace MovieAPI.Controllers
             }
         }
         [Authorize]
+        [UserBanned]
         [HttpPost]
         public IActionResult RefreshToken(string AccessToken, string RefreshToken)
         {
@@ -358,7 +361,9 @@ namespace MovieAPI.Controllers
                     UserName = serviceLoginModel.Id + "Google",
                     PasswordHash = passwordHash,
                     PasswordSalt = passwordSalt,
-                    AuthorizationID = auth
+                    AuthorizationID = auth ,
+                    Status = true,
+                    CreateAt = DateTime.Now
                 };
                 _db.Users!.Add(user);
                 int returnValue = _db.SaveChanges();
@@ -671,7 +676,7 @@ namespace MovieAPI.Controllers
                     .Include(user => user.Profile.Classification)
                     .OrderByDescending(user => user.CreateAt)
                     .Take(top).ToList();
-                if (user == null)
+                if (user.Count==0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("User", "User is empty"));
                     return NotFound(new ApiResponse

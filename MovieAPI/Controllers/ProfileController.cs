@@ -7,6 +7,7 @@ using MovieAPI.Data.DbConfig;
 using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
+using MovieAPI.Services.Attributes;
 using Newtonsoft.Json.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -69,18 +70,6 @@ namespace MovieAPI.Controllers
                 });
             }
         }
-        //[Authorize(Roles ="Admin")]
-        //[HttpGet]
-        //public IActionResult GetAll()
-        //{
-        //    try
-        //    {
-
-        //    catch
-        //    {
-
-        //    }
-        //}
         [HttpGet]
         public IActionResult GetInformationSortByCreateTime()
         {
@@ -128,7 +117,8 @@ namespace MovieAPI.Controllers
                     .Include(user => user.Profile.Classification)
                     .Where(user => user.Profile.FirstName.Contains(text)
                     || user.Profile.LastName.Contains(text)
-                    || user.Profile.LastName.Contains(text))
+                    || user.Profile.LastName.Contains(text)
+                    || user.UserName.Contains(text))
                     .ToList();
                 var userDTO = _mapper.Map<List<User>, List<UserDTO>>(users);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Users - Profile - Authorization - Classification", users.Count));
@@ -220,6 +210,7 @@ namespace MovieAPI.Controllers
             }
         }
         [Authorize]
+        [UserBanned]
         [HttpPut]
         public IActionResult PremiumUpgrade([FromBody] Guid userID)
         {
@@ -263,6 +254,7 @@ namespace MovieAPI.Controllers
             }
         }
         [Authorize]
+        [UserBanned]
         [HttpPut]
         public IActionResult UpdateProfileForUser([FromBody] JObject data)
         {

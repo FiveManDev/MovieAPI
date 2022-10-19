@@ -7,6 +7,7 @@ using MovieAPI.Data.DbConfig;
 using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
+using MovieAPI.Services.Attributes;
 using MovieAPI.Services.SignalR;
 using System.Reflection;
 
@@ -51,7 +52,7 @@ namespace MovieAPI.Controllers
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var tickets = context.Tickets.Where(t => t.GroupID == GroupID).ToList();
-                if (tickets == null)
+                if (tickets.Count==0)
                 {
                     logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Ticket", "Group not found"));
                     return NotFound(new ApiResponse
@@ -80,6 +81,7 @@ namespace MovieAPI.Controllers
             }
         }
         [Authorize]
+        [UserBanned]
         [HttpPost]
         public async Task<IActionResult> SendMessageFromUser([FromBody] ChatModel chatModel)
         {

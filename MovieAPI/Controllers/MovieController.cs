@@ -9,6 +9,7 @@ using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
 using Newtonsoft.Json.Linq;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 namespace MovieAPI.Controllers
@@ -30,7 +31,7 @@ namespace MovieAPI.Controllers
             s3Client = amazonS3;
         }
         [HttpGet]
-        public IActionResult GetMovieInformationById(string id)
+        public IActionResult GetMovieInformationById([Required] Guid id)
         {
             try
             {
@@ -40,7 +41,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
-                    .FirstOrDefault(movie => movie.MovieID.ToString() == id);
+                    .FirstOrDefault(movie => movie.MovieID == id);
 
                 if (movie == null)
                 {
@@ -86,7 +87,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.MovieGenreInformations)
                     .OrderBy(movie => movie.PublicationTime)
                     .ToList();
-                if (movies == null)
+                if (movies.Count == 0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -120,7 +121,7 @@ namespace MovieAPI.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetTopLatestReleaseMovies(int top)
+        public IActionResult GetTopLatestReleaseMovies(int top = 0)
         {
             try
             {
@@ -136,7 +137,7 @@ namespace MovieAPI.Controllers
                     .OrderBy(movie => movie.ReleaseTime)
                     .Take(top).ToList();
 
-                if (movies == null)
+                if (movies.Count == 0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -171,7 +172,7 @@ namespace MovieAPI.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetTopLatestPublicationMovies(int top)
+        public IActionResult GetTopLatestPublicationMovies(int top = 0)
         {
             try
             {
@@ -187,7 +188,7 @@ namespace MovieAPI.Controllers
                     .OrderBy(movie => movie.PublicationTime)
                     .Take(top).ToList();
 
-                if (movies == null)
+                if (movies.Count == 0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -222,15 +223,13 @@ namespace MovieAPI.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetMoviesBasedOnType(string type, int top)
+        public IActionResult GetMoviesBasedOnType([Required]Guid typeId, int top = 0)
         {
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 if (top <= 0) top = 6;
                 if (top > 10) top = 10;
-
-                var typeId = _db.MovieTypes.FirstOrDefault(movieType => movieType.MovieTypeName.Equals(type))?.MovieTypeID;
 
                 var movies = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
@@ -240,7 +239,7 @@ namespace MovieAPI.Controllers
                     .Where(movie => movie.MovieTypeID == typeId)
                     .Take(top).ToList();
 
-                if (movies == null)
+                if (movies.Count==0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -260,7 +259,7 @@ namespace MovieAPI.Controllers
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Message = movieDTOs.Count() == 0 ? "Empty!" : "",
+                    Message = "Get movies based on type success",
                     Data = movieDTOs
                 });
 
@@ -276,12 +275,11 @@ namespace MovieAPI.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetMoviesBasedOnGenre(string genreName, int top)
+        public IActionResult GetMoviesBasedOnGenre([Required]Guid genreID, int top = 0)
         {
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                var genreID = _db.Genres.SingleOrDefault(genre => genre.GenreName.Equals(genreName)).GenreID;
                 var movieGenreInformations = _db.MovieGenreInformations
                     .Include(mg => mg.MovieInformation)
                     .Include(mg => mg.MovieInformation.User.Profile)
@@ -291,7 +289,7 @@ namespace MovieAPI.Controllers
                     .Select(mg => mg.MovieInformation)
                     .Take(top)
                     .ToList();
-                if (movieGenreInformations == null)
+                if (movieGenreInformations.Count == 0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -325,7 +323,7 @@ namespace MovieAPI.Controllers
             }
         }
         [HttpGet]
-        public IActionResult GetMovieBaseOnTopRating(int top)
+        public IActionResult GetMovieBaseOnTopRating(int top = 0)
         {
             try
             {
@@ -342,7 +340,7 @@ namespace MovieAPI.Controllers
                     .SingleOrDefault(m => m.MovieID == dTO.MovieID);
                     movies.Add(movie);
                 }
-                if (movies == null)
+                if (movies.Count == 0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -393,7 +391,7 @@ namespace MovieAPI.Controllers
 
                 var listID = listmovieID.Where(movieDTO => movieDTO.Rating >= ratingMin
                  && movieDTO.Rating <= ratingMax).ToList();
-                if (listID == null)
+                if (listID.Count==0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -418,7 +416,7 @@ namespace MovieAPI.Controllers
                     var check = movie.MovieGenreInformations.Any(mg => mg.GenreID == genreID);
                     if (check) movies.Add(movie);
                 }
-                if (movies == null)
+                if (movies.Count == 0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -468,9 +466,9 @@ namespace MovieAPI.Controllers
                     .Include(m => m.MovieType)
                     .Include(m => m.MovieGenreInformations)
                     .SingleOrDefault(m => m.MovieID == dTO.MovieID);
-                    movies.Add(movie);
+                    if(movie==null)movies.Add(movie);
                 }
-                if (movies == null)
+                if (movies.Count == 0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -506,7 +504,7 @@ namespace MovieAPI.Controllers
         }
         // Get Movies Based On Search Text
         [HttpGet]
-        public IActionResult GetMoviesBasedOnSearchText(string searchText, int top)
+        public IActionResult GetMoviesBasedOnSearchText(string searchText, int top=0)
         {
             try
             {
@@ -526,7 +524,7 @@ namespace MovieAPI.Controllers
                         || movie.ReleaseTime.ToString().Contains(searchText))
                     .Take(top).ToList();
 
-                if (movies == null)
+                if (movies.Count == 0)
                 {
                     logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -579,7 +577,7 @@ namespace MovieAPI.Controllers
                         || movie.ReleaseTime.ToString().Contains(searchText))
                     .ToList();
 
-                if (movies == null)
+                if (movies.Count == 0)
                 {
                     logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -788,7 +786,7 @@ namespace MovieAPI.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpDelete]
-        public IActionResult DeleteMovie([FromBody] Guid movieID)
+        public IActionResult DeleteMovie([FromBody][Required] Guid movieID)
         {
             try
             {
@@ -807,7 +805,7 @@ namespace MovieAPI.Controllers
                 var returnValue = _db.SaveChanges();
                 if (returnValue == 0)
                 {
-                    throw new Exception("");
+                    throw new Exception("Remove movie failed");
                 }
                 return Ok(new ApiResponse
                 {
