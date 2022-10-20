@@ -205,7 +205,7 @@ namespace MovieAPI.Migrations
                     b.Property<string>("LastName")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("b41dac1c-2fab-46a9-99c7-a78266dc7943");
+                        .HasDefaultValue("632729d0-9f8e-4209-b2e2-d77aaa912b5b");
 
                     b.Property<Guid>("UserID")
                         .HasColumnType("uniqueidentifier");
@@ -354,14 +354,14 @@ namespace MovieAPI.Migrations
                     b.HasOne("MovieAPI.Data.Genre", "Genre")
                         .WithMany("MovieGenreInformations")
                         .HasForeignKey("GenreID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("PK_Genre_One_To_Many_MovieGenreInformation");
 
                     b.HasOne("MovieAPI.Data.MovieInformation", "MovieInformation")
                         .WithMany("MovieGenreInformations")
                         .HasForeignKey("MovieID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("PK_MovieInformation_One_To_Many_MovieGenreInformation");
 
@@ -375,14 +375,14 @@ namespace MovieAPI.Migrations
                     b.HasOne("MovieAPI.Data.Classification", "Classification")
                         .WithMany("MovieInformations")
                         .HasForeignKey("ClassID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("PK_MovieInformation_Many_To_One_Classification");
 
                     b.HasOne("MovieAPI.Data.MovieType", "MovieType")
                         .WithMany("MovieInformations")
                         .HasForeignKey("MovieTypeID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("PK_MovieInformation_One_To_One_MovieType");
 
@@ -405,7 +405,7 @@ namespace MovieAPI.Migrations
                     b.HasOne("MovieAPI.Data.Classification", "Classification")
                         .WithMany("Profiles")
                         .HasForeignKey("ClassID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("PK_Profile_One_To_One_Classification");
 
@@ -426,7 +426,7 @@ namespace MovieAPI.Migrations
                     b.HasOne("MovieAPI.Data.MovieInformation", "MovieInformation")
                         .WithMany("Reviews")
                         .HasForeignKey("MovieID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("PK_MovieInformation_One_To_Many_Review");
 
@@ -447,7 +447,7 @@ namespace MovieAPI.Migrations
                     b.HasOne("MovieAPI.Data.User", "Receiver")
                         .WithMany("TicketForReceivers")
                         .HasForeignKey("ReceiverId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("PK_User_One_To_Many_TicketForReceiver");
 
@@ -480,7 +480,7 @@ namespace MovieAPI.Migrations
                     b.HasOne("MovieAPI.Data.Authorization", "Authorization")
                         .WithMany("User")
                         .HasForeignKey("AuthorizationID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("PK_User_Many_To_One_Authorization");
 

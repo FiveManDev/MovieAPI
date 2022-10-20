@@ -6,7 +6,7 @@ namespace MovieAPI.Data.DbConfig
 {
     public class MovieAPIDbContext : DbContext
     {
-        public MovieAPIDbContext(){ }
+        public MovieAPIDbContext() { }
         #region Dbset
         public DbSet<User> Users { get; set; }
         public DbSet<Profile> Profiles { get; set; }
@@ -37,15 +37,23 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(user => user.UserName).IsRequired();
                 e.Property(user => user.PasswordHash).IsRequired();
                 e.Property(user => user.PasswordSalt).IsRequired();
-                e.Property(user=>user.Status).IsRequired();
-                e.Property(user=>user.CreateAt).IsRequired();
-                //e.Property(user => user.AuthorizationID).HasConversion<string>();
-                e.HasOne(user => user.Authorization)
-                    .WithMany(auth => auth.User)
-                    .HasForeignKey(user => user.AuthorizationID)
-                    .OnDelete(DeleteBehavior.NoAction)
-                    .HasConstraintName("PK_User_Many_To_One_Authorization");
-
+                e.Property(user => user.Status).IsRequired();
+                e.Property(user => user.CreateAt).IsRequired();
+                e.HasMany(user => user.Reviews)
+                    .WithOne(r => r.User)
+                    .HasForeignKey(r => r.UserID)
+                    .HasConstraintName("PK_User_One_To_Many_Review")
+                    .OnDelete(DeleteBehavior.NoAction);
+                e.HasMany(user => user.TicketForSenders)
+                    .WithOne(ticket => ticket.Sender)
+                    .HasForeignKey(ticket => ticket.SenderId)
+                    .HasConstraintName("PK_User_One_To_Many_TicketForSender")
+                    .OnDelete(DeleteBehavior.NoAction);
+                e.HasMany(user => user.TicketForReceivers)
+                    .WithOne(ticket => ticket.Receiver)
+                    .HasForeignKey(ticket => ticket.ReceiverId)
+                    .HasConstraintName("PK_User_One_To_Many_TicketForReceiver")
+                    .OnDelete(DeleteBehavior.Cascade);
             });
             modelBuilder.Entity<Profile>(e =>
             {
@@ -60,11 +68,6 @@ namespace MovieAPI.Data.DbConfig
                     .WithOne(user => user.Profile)
                     .HasForeignKey<Profile>(pro => pro.UserID)
                     .HasConstraintName("PK_Profile_One_To_One_User");
-                e.HasOne(pro => pro.Classification)
-                    .WithMany(cl => cl.Profiles)
-                    .HasForeignKey(pro => pro.ClassID)
-                    .OnDelete(DeleteBehavior.NoAction)
-                    .HasConstraintName("PK_Profile_One_To_One_Classification");
             });
             modelBuilder.Entity<Token>(e =>
             {
@@ -85,6 +88,11 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(auth => auth.AuthorizationID).HasDefaultValueSql("NEWID()");
                 e.Property(auth => auth.AuthorizationName);
                 e.Property(auth => auth.AuthorizationLevel);
+                e.HasMany(auth => auth.User)
+                   .WithOne(user => user.Authorization)
+                   .HasForeignKey(user => user.AuthorizationID)
+                   .HasConstraintName("PK_User_Many_To_One_Authorization")
+                   .OnDelete(DeleteBehavior.Cascade);
             });
             modelBuilder.Entity<Classification>(e =>
             {
@@ -93,6 +101,16 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(clf => clf.ClassID).HasDefaultValueSql("NEWID()");
                 e.Property(clf => clf.ClassName);
                 e.Property(clf => clf.ClassLevel);
+                e.HasMany(clf => clf.Profiles)
+                    .WithOne(pro => pro.Classification)
+                    .HasForeignKey(pro => pro.ClassID)
+                    .HasConstraintName("PK_Profile_One_To_One_Classification")
+                    .OnDelete(DeleteBehavior.Cascade);
+                e.HasMany(clf => clf.MovieInformations)
+                    .WithOne(mi => mi.Classification)
+                    .HasForeignKey(mi => mi.ClassID)
+                    .HasConstraintName("PK_MovieInformation_Many_To_One_Classification")
+                    .OnDelete(DeleteBehavior.Cascade);
             });
             modelBuilder.Entity<MovieInformation>(e =>
             {
@@ -119,16 +137,16 @@ namespace MovieAPI.Data.DbConfig
                     .WithMany(user => user.MovieInformations)
                     .HasForeignKey(mi => mi.UserID)
                     .HasConstraintName("PK_User_One_To_Many_MovieInformation");
-                e.HasOne(mi => mi.Classification)
-                    .WithMany(cl => cl.MovieInformations)
-                    .HasForeignKey(mi => mi.ClassID)
-                    .OnDelete(DeleteBehavior.NoAction)
-                    .HasConstraintName("PK_MovieInformation_Many_To_One_Classification");
-                e.HasOne(mi => mi.MovieType)
-                    .WithMany(mt => mt.MovieInformations)
-                    .HasForeignKey(mi => mi.MovieTypeID)
-                    .OnDelete(DeleteBehavior.NoAction)
-                    .HasConstraintName("PK_MovieInformation_One_To_One_MovieType");
+                e.HasMany(mi => mi.Reviews)
+                   .WithOne(movie => movie.MovieInformation)
+                   .HasForeignKey(r => r.MovieID)
+                   .HasConstraintName("PK_MovieInformation_One_To_Many_Review")
+                   .OnDelete(DeleteBehavior.Cascade);
+                e.HasMany(mi => mi.MovieGenreInformations)
+                    .WithOne(mgi => mgi.MovieInformation)
+                    .HasForeignKey(mgi => mgi.MovieID)
+                    .HasConstraintName("PK_MovieInformation_One_To_Many_MovieGenreInformation")
+                    .OnDelete(DeleteBehavior.Cascade);
             });
             modelBuilder.Entity<MovieType>(e =>
             {
@@ -136,6 +154,11 @@ namespace MovieAPI.Data.DbConfig
                 e.HasKey(mt => mt.MovieTypeID);
                 e.Property(mt => mt.MovieTypeID).HasDefaultValueSql("NEWID()");
                 e.Property(mt => mt.MovieTypeName);
+                e.HasMany(mt => mt.MovieInformations)
+                    .WithOne(mi => mi.MovieType)
+                    .HasForeignKey(mi => mi.MovieTypeID)
+                    .HasConstraintName("PK_MovieInformation_One_To_One_MovieType")
+                    .OnDelete(DeleteBehavior.Cascade);
             });
             modelBuilder.Entity<Genre>(e =>
             {
@@ -143,6 +166,11 @@ namespace MovieAPI.Data.DbConfig
                 e.HasKey(g => g.GenreID);
                 e.Property(g => g.GenreID).HasDefaultValueSql("NEWID()");
                 e.Property(g => g.GenreName);
+                e.HasMany(g => g.MovieGenreInformations)
+                    .WithOne(mgi => mgi.Genre)
+                    .HasForeignKey(mgi => mgi.GenreID)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("PK_Genre_One_To_Many_MovieGenreInformation");
             });
             modelBuilder.Entity<MovieGenreInformation>(e =>
             {
@@ -150,16 +178,6 @@ namespace MovieAPI.Data.DbConfig
                 e.HasKey(mgi => new { mgi.MovieID, mgi.GenreID });
                 e.Property(mgi => mgi.MovieID);
                 e.Property(mgi => mgi.GenreID);
-                e.HasOne(mgi => mgi.MovieInformation)
-                    .WithMany(mi => mi.MovieGenreInformations)
-                    .HasForeignKey(mgi => mgi.MovieID)
-                    .OnDelete(DeleteBehavior.NoAction)
-                    .HasConstraintName("PK_MovieInformation_One_To_Many_MovieGenreInformation");
-                e.HasOne(mgi => mgi.Genre)
-                    .WithMany(g => g.MovieGenreInformations)
-                    .HasForeignKey(mgi => mgi.GenreID)
-                    .OnDelete(DeleteBehavior.NoAction)
-                    .HasConstraintName("PK_Genre_One_To_Many_MovieGenreInformation");
             });
             modelBuilder.Entity<Review>(e =>
             {
@@ -170,36 +188,6 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(r => r.ReviewContent);
                 e.Property(r => r.Rating);
                 e.Property(r => r.ReviewTime);
-                e.HasOne(r => r.User)
-                    .WithMany(user => user.Reviews)
-                    .HasForeignKey(r => r.UserID)
-                    .HasConstraintName("PK_User_One_To_Many_Review")
-                    .OnDelete(DeleteBehavior.NoAction);
-                e.HasOne(r => r.MovieInformation)
-                    .WithMany(movie => movie.Reviews)
-                    .HasForeignKey(r => r.MovieID)
-                    .HasConstraintName("PK_MovieInformation_One_To_Many_Review")
-                    .OnDelete(DeleteBehavior.NoAction);
-            });
-            modelBuilder.Entity<Review>(e =>
-            {
-                e.ToTable("Review");
-                e.HasKey(r => r.ReviewID);
-                e.Property(r => r.ReviewID).HasDefaultValueSql("NEWID()");
-                e.Property(r => r.Title);
-                e.Property(r => r.ReviewContent);
-                e.Property(r => r.Rating);
-                e.Property(r => r.ReviewTime);
-                e.HasOne(r => r.User)
-                    .WithMany(user => user.Reviews)
-                    .HasForeignKey(r => r.UserID)
-                    .HasConstraintName("PK_User_One_To_Many_Review")
-                    .OnDelete(DeleteBehavior.NoAction);
-                e.HasOne(r => r.MovieInformation)
-                    .WithMany(movie => movie.Reviews)
-                    .HasForeignKey(r => r.MovieID)
-                    .HasConstraintName("PK_MovieInformation_One_To_Many_Review")
-                    .OnDelete(DeleteBehavior.NoAction);
             });
             modelBuilder.Entity<Ticket>(e =>
             {
@@ -210,16 +198,6 @@ namespace MovieAPI.Data.DbConfig
                 e.Property(ticket => ticket.IsFromAdmin);
                 e.Property(ticket => ticket.MessageContent);
                 e.Property(ticket => ticket.MessageTime);
-                e.HasOne(ticket => ticket.Sender)
-                    .WithMany(user => user.TicketForSenders)
-                    .HasForeignKey(ticket => ticket.SenderId)
-                    .HasConstraintName("PK_User_One_To_Many_TicketForSender")
-                    .OnDelete(DeleteBehavior.NoAction);
-                e.HasOne(ticket => ticket.Receiver)
-                   .WithMany(user => user.TicketForReceivers)
-                   .HasForeignKey(ticket => ticket.ReceiverId)
-                   .HasConstraintName("PK_User_One_To_Many_TicketForReceiver")
-                   .OnDelete(DeleteBehavior.NoAction);
             });
             #endregion
             #region DataInit

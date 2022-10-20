@@ -545,6 +545,16 @@ namespace MovieAPI.Controllers
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var user = _db.Users.Find(UserId);
+                var reviews = _db.Reviews.Where(r=>r.UserID== UserId).ToList();
+                if (reviews.Count != 0)
+                {
+                    _db.Reviews.RemoveRange(reviews);
+                    var returnValueMovie = _db.SaveChanges();
+                    if (returnValueMovie == 0)
+                    {
+                        throw new Exception("Delete data of Movie failed");
+                    }
+                }
                 if (user == null)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("User", "User not found"));

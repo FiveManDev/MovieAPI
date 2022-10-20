@@ -214,7 +214,7 @@ namespace MovieAPI.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> CreateReview([FromBody] ReviewDTO reviewDTO)
+        public async Task<IActionResult> CreateReview([FromBody] PostReviewModel reviewDTO)
         {
             try
             {
