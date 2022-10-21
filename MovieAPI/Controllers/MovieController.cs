@@ -3,11 +3,13 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using MovieAPI.Data;
 using MovieAPI.Data.DbConfig;
 using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
+using MovieAPI.Models.Pagination;
 using Newtonsoft.Json.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
@@ -23,12 +25,14 @@ namespace MovieAPI.Controllers
         private readonly IMapper _mapper;
         private readonly MovieAPIDbContext _db;
         private readonly IAmazonS3 s3Client;
+
         public MovieController(ILogger<MovieController> iLogger, IMapper mapper, MovieAPIDbContext db, IAmazonS3 amazonS3)
         {
             logger = iLogger;
             _mapper = mapper;
             _db = db;
             s3Client = amazonS3;
+
         }
         [HttpGet]
         public IActionResult GetMovieInformationById([Required] Guid id)
@@ -74,6 +78,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpGet]
         public IActionResult GetMovieSortByPublicationTime()
         {
@@ -120,6 +125,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpGet]
         public IActionResult GetTopLatestReleaseMovies(int top = 0)
         {
@@ -171,6 +177,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpGet]
         public IActionResult GetTopLatestPublicationMovies(int top = 0)
         {
@@ -222,6 +229,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpGet]
         public IActionResult GetMoviesBasedOnType([Required]Guid typeId, int top = 0)
         {
@@ -274,6 +282,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpGet]
         public IActionResult GetMoviesBasedOnGenre([Required]Guid genreID, int top = 0)
         {
@@ -322,6 +331,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpGet]
         public IActionResult GetMovieBaseOnTopRating(int top = 0)
         {
@@ -374,6 +384,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpGet]
         public IActionResult GetMovieBaseOnFilter(Guid genreID, string quality, float ratingMin, float ratingMax, int releaseTimeMin, int releaseTimeMax)
         {
@@ -450,6 +461,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+       
         [HttpGet]
         public IActionResult GetMovieSortByRating()
         {
@@ -502,6 +514,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         // Get Movies Based On Search Text
         [HttpGet]
         public IActionResult GetMoviesBasedOnSearchText(string searchText, int top=0)
@@ -559,6 +572,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpGet]
         public IActionResult GetMoviesBasedOnSearchTextInCatalog(string searchText)
         {
@@ -612,6 +626,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpGet]
         public IActionResult GetTotalNumberOfMovies()
         {
@@ -638,6 +653,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> PostMovie([FromBody] PostMovieModel postMovieModel)
@@ -712,6 +728,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [Authorize(Roles = "Admin")]
         [HttpPut]
         public async Task<IActionResult> UpdateMovie([FromBody] PostMovieModel postMovieModel)
@@ -784,6 +801,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [Authorize(Roles = "Admin")]
         [HttpDelete]
         public IActionResult DeleteMovie([FromBody][Required] Guid movieID)
@@ -823,6 +841,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [Authorize(Roles = "Admin")]
         [HttpPut]
         public IActionResult UpdateMovieStatus([FromBody] JObject data)
@@ -865,6 +884,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [HttpGet]
         public IActionResult GetTotalMovie()
         {
@@ -899,6 +919,72 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
+        // Get Movies Based On Search Text
+        [HttpGet]
+        public IActionResult GetMovies([FromQuery] Pager pager, string q = "", string sortBy = "date", string sortType = "desc")
+        {
+            try
+            {
+                IQueryable<MovieInformation> moviesQueryable = _db.MovieInformations
+                    .Include(movie => movie.User.Profile)
+                    .Include(movie => movie.Classification)
+                    .Include(movie => movie.MovieType)
+                    .Include(movie => movie.MovieGenreInformations)
+                    .Where(movie => movie.MovieName.Contains(q)
+                                 || movie.Description.Contains(q)
+                                 || movie.Actor.Contains(q)
+                                 || movie.Director.Contains(q));
+
+                if (sortBy == "date")
+                {
+                    if (sortType.ToLower() == "desc")
+                    {
+                        moviesQueryable.OrderByDescending(movie => movie.PublicationTime);
+                    } else if (sortType.ToLower() == "asc")
+                    {
+                        moviesQueryable.OrderBy(movie => movie.PublicationTime);
+                    }
+                } else if (sortBy == "rating")
+                {
+                    // do nothing...maybe later :D
+                }
+
+                var movies = PaginatedList<MovieInformation>.ToPageList(moviesQueryable.AsNoTracking(), pager.pageIndex, pager.pageSize);
+
+                if (movies.Count == 0)
+                {
+                    return Ok(new ApiResponse
+                    {
+                        IsSuccess = true,
+                        Data = null
+                    });
+                }
+
+                var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+                // calcute rating and get genre name
+                movieDTOs.ForEach(movieDTO =>
+                {
+                    movieDTO = calculateRating(movieDTO);
+                    movieDTO = getGenreName(movieDTO);
+                });
+
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Data = movieDTOs
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal Server Error"
+                });
+            }
+        }
+
         [ApiExplorerSettings(IgnoreApi = true)]
         public MovieDTO calculateRating(MovieDTO movieDTO)
         {
@@ -921,6 +1007,7 @@ namespace MovieAPI.Controllers
             movieDTO.Genres = genres;
             return movieDTO;
         }
+
         [ApiExplorerSettings(IgnoreApi = true)]
         public List<MovieDTO> getTopRating(int top)
         {
