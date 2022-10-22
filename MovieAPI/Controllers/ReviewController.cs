@@ -226,7 +226,7 @@ namespace MovieAPI.Controllers
                     Rating = reviewDTO.Rating,
                     ReviewTime = reviewDTO.ReviewTime,
                     UserID = reviewDTO.UserID,
-                    MovieID = reviewDTO.UserID
+                    MovieID = reviewDTO.MovieID
                 };
                 context.Reviews.Add(review);
                 var returnValue = context.SaveChanges();
