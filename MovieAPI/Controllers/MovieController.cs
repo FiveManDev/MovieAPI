@@ -947,6 +947,7 @@ namespace MovieAPI.Controllers
                     }
                 } else if (sortBy == "rating")
                 {
+
                     // do nothing...maybe later :D
                 }
 
@@ -960,7 +961,7 @@ namespace MovieAPI.Controllers
                         Data = null
                     });
                 }
-
+                // can not map PaginatedList???
                 var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
                 // calcute rating and get genre name
                 movieDTOs.ForEach(movieDTO =>
@@ -968,11 +969,20 @@ namespace MovieAPI.Controllers
                     movieDTO = calculateRating(movieDTO);
                     movieDTO = getGenreName(movieDTO);
                 });
-
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Data = movieDTOs
+                    Data = new
+                    {
+                        Movies = movieDTOs,
+                        PageIndex = movies.PageIndex,
+                        TotalPage = movies.TotalPages,
+                        PageSize = movies.PageSize,
+                        TotalCount = movies.TotalCount,
+                        HasPrevious = movies.HasPrevious,
+                        HasNext = movies.HasNext,
+                        // ????
+                    }
                 });
             }
             catch (Exception ex)
