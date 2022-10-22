@@ -177,7 +177,56 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+        [HttpGet]
+        public IActionResult GetAllMovieIsPremium()
+        {
+            try
+            {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                
 
+                var movies = _db.MovieInformations
+                    .Include(movie => movie.User.Profile)
+                    .Include(movie => movie.Classification)
+                    .Include(movie => movie.MovieType)
+                    .Include(movie => movie.MovieGenreInformations)
+                    .Where(movie => string.Equals(movie.Classification.ClassName, "Premium"))
+                    .ToList();
+
+                if (movies.Count == 0)
+                {
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Movies Not Found"
+                    });
+                }
+
+                var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
+                movieDTOs.ForEach(movieDTO =>
+                {
+                    movieDTO = calculateRating(movieDTO);
+                    movieDTO = getGenreName(movieDTO);
+                });
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("MovieInformations", movieDTOs.Count));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get All Movie Is Premium Success",
+                    Data = movieDTOs
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", ex.ToString()));
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal Server Error"
+                });
+            }
+        }
         [HttpGet]
         public IActionResult GetTopLatestPublicationMovies(int top = 0)
         {
@@ -231,7 +280,7 @@ namespace MovieAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetMoviesBasedOnType([Required]Guid typeId, int top = 0)
+        public IActionResult GetMoviesBasedOnType([Required] Guid typeId, int top = 0)
         {
             try
             {
@@ -247,7 +296,7 @@ namespace MovieAPI.Controllers
                     .Where(movie => movie.MovieTypeID == typeId)
                     .Take(top).ToList();
 
-                if (movies.Count==0)
+                if (movies.Count == 0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformation", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -284,7 +333,7 @@ namespace MovieAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetMoviesBasedOnGenre([Required]Guid genreID, int top = 0)
+        public IActionResult GetMoviesBasedOnGenre([Required] Guid genreID, int top = 0)
         {
             try
             {
@@ -402,7 +451,7 @@ namespace MovieAPI.Controllers
 
                 var listID = listmovieID.Where(movieDTO => movieDTO.Rating >= ratingMin
                  && movieDTO.Rating <= ratingMax).ToList();
-                if (listID.Count==0)
+                if (listID.Count == 0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
                     return NotFound(new ApiResponse
@@ -461,7 +510,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
-       
+
         [HttpGet]
         public IActionResult GetMovieSortByRating()
         {
@@ -478,7 +527,7 @@ namespace MovieAPI.Controllers
                     .Include(m => m.MovieType)
                     .Include(m => m.MovieGenreInformations)
                     .SingleOrDefault(m => m.MovieID == dTO.MovieID);
-                    if(movie==null)movies.Add(movie);
+                    if (movie == null) movies.Add(movie);
                 }
                 if (movies.Count == 0)
                 {
@@ -517,7 +566,7 @@ namespace MovieAPI.Controllers
 
         // Get Movies Based On Search Text
         [HttpGet]
-        public IActionResult GetMoviesBasedOnSearchText(string searchText, int top=0)
+        public IActionResult GetMoviesBasedOnSearchText(string searchText, int top = 0)
         {
             try
             {
@@ -941,11 +990,13 @@ namespace MovieAPI.Controllers
                     if (sortType.ToLower() == "desc")
                     {
                         moviesQueryable.OrderByDescending(movie => movie.PublicationTime);
-                    } else if (sortType.ToLower() == "asc")
+                    }
+                    else if (sortType.ToLower() == "asc")
                     {
                         moviesQueryable.OrderBy(movie => movie.PublicationTime);
                     }
-                } else if (sortBy == "rating")
+                }
+                else if (sortBy == "rating")
                 {
 
                     // do nothing...maybe later :D
