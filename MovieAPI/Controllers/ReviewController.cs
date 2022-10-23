@@ -192,7 +192,7 @@ namespace MovieAPI.Controllers
                 var reviews = context.Reviews
                     .Include(review => review.User.Profile)
                     .Include(review => review.MovieInformation)
-                    .OrderBy(review => review.ReviewTime)
+                    .OrderByDescending(review => review.ReviewTime)
                     .Take(top).ToList();
                 var reviewDTO = mapper.Map<List<Review>, List<ReviewDTO>>(reviews);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Reviews", reviews.Count));

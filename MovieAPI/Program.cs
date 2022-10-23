@@ -73,13 +73,6 @@ AppSettings.MailTile = builder.Configuration["MailConnectionInformation:MailTile
 AppSettings.MailAppPassword = builder.Configuration["MailConnectionInformation:MailAppPassword"];
 AppSettings.Host = builder.Configuration["MailConnectionInformation:Host"];
 AppSettings.Port = builder.Configuration["MailConnectionInformation:Port"];
-//Add services Momo
-AppSettings.PartnerCode = builder.Configuration["MomoConnectionInformation:PartnerCode"];
-AppSettings.MomoAccessKey = builder.Configuration["MomoConnectionInformation:AccessKey"];
-AppSettings.MomoSerectkey = builder.Configuration["MomoConnectionInformation:Serectkey"];
-AppSettings.Endpoint = builder.Configuration["MomoConnectionInformation:Endpoint"];
-AppSettings.ReturnUrl = builder.Configuration["MomoConnectionInformation:ReturnUrl"];
-AppSettings.NotifyUrl = builder.Configuration["MomoConnectionInformation:Notifyurl"];
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Version = "1", Title = "My API" });

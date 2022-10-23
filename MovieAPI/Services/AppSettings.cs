@@ -12,13 +12,5 @@
         public static string Host { get; set; }
         public static string Port { get; set; }
         #endregion
-        #region Momo
-        public static string PartnerCode { get; set; }
-        public static string MomoAccessKey { get; set; }
-        public static string MomoSerectkey { get; set; }
-        public static string Endpoint { get; set; }
-        public static string ReturnUrl { get; set; }
-        public static string NotifyUrl { get; set; }
-        #endregion
     }
 }

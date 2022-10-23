@@ -90,7 +90,8 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
-                    .OrderBy(movie => movie.PublicationTime)
+                    .Where(movie => movie.IsVisible !=false)
+                    .OrderByDescending(movie => movie.PublicationTime)
                     .ToList();
                 if (movies.Count == 0)
                 {
@@ -140,7 +141,8 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
-                    .OrderBy(movie => movie.ReleaseTime)
+                    .Where(movie => movie.IsVisible !=false)
+                    .OrderByDescending(movie => movie.ReleaseTime)
                     .Take(top).ToList();
 
                 if (movies.Count == 0)
@@ -190,6 +192,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
+                    .Where(movie => movie.IsVisible !=false)
                     .Where(movie => string.Equals(movie.Classification.ClassName, "Premium"))
                     .ToList();
 
@@ -241,7 +244,8 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
-                    .OrderBy(movie => movie.PublicationTime)
+                    .Where(movie => movie.IsVisible !=false)
+                    .OrderByDescending(movie => movie.PublicationTime)
                     .Take(top).ToList();
 
                 if (movies.Count == 0)
@@ -293,6 +297,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
+                    .Where(movie => movie.IsVisible !=false)
                     .Where(movie => movie.MovieTypeID == typeId)
                     .Take(top).ToList();
 
@@ -343,7 +348,9 @@ namespace MovieAPI.Controllers
                     .Include(mg => mg.MovieInformation.User.Profile)
                     .Include(mg => mg.MovieInformation.Classification)
                     .Include(mg => mg.MovieInformation.MovieType)
-                    .Where(mg => mg.GenreID == genreID)
+                    .Where(mg => 
+                    mg.GenreID == genreID
+                    && mg.MovieInformation.IsVisible !=false )
                     .Select(mg => mg.MovieInformation)
                     .Take(top)
                     .ToList();
@@ -396,6 +403,7 @@ namespace MovieAPI.Controllers
                     .Include(m => m.Classification)
                     .Include(m => m.MovieType)
                     .Include(m => m.MovieGenreInformations)
+                    .Where(movie => movie.IsVisible !=false)
                     .SingleOrDefault(m => m.MovieID == dTO.MovieID);
                     movies.Add(movie);
                 }
@@ -526,6 +534,7 @@ namespace MovieAPI.Controllers
                     .Include(m => m.Classification)
                     .Include(m => m.MovieType)
                     .Include(m => m.MovieGenreInformations)
+                    .Where(movie => movie.IsVisible !=false)
                     .SingleOrDefault(m => m.MovieID == dTO.MovieID);
                     if (movie == null) movies.Add(movie);
                 }
