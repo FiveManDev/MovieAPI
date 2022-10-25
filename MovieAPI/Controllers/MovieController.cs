@@ -725,6 +725,8 @@ namespace MovieAPI.Controllers
                 var thumbnail = "";
                 var coverImage = "";
                 var movieURL = "";
+                var ClassID = _db.Classifications.SingleOrDefault(cls => cls.ClassName == postMovieModel.ClassName).ClassID;
+                var MovieTypeID = _db.MovieTypes.SingleOrDefault(mt => mt.MovieTypeName == postMovieModel.MovieTypeName).MovieTypeID;
                 var movieInformation = new MovieInformation
                 {
                     MovieName = postMovieModel.MovieName,
@@ -743,17 +745,22 @@ namespace MovieAPI.Controllers
                     RunningTime = postMovieModel.RunningTime,
                     Quality = postMovieModel.Quality,
                     UserID = postMovieModel.UserID,
-                    ClassID = postMovieModel.ClassID,
-                    MovieTypeID = postMovieModel.MovieTypeID,
+                    ClassID = ClassID,
+                    MovieTypeID = MovieTypeID,
                 };
                 _db.MovieInformations.Add(movieInformation);
                 var returnValue = _db.SaveChanges();
+                var GenreIDs = new List<Guid>();
+                foreach (var genreName in postMovieModel.GenreName)
+                {
+                    GenreIDs.Add(_db.Genres.SingleOrDefault(g => g.GenreName == genreName).GenreID);
+                }
                 if (returnValue != 0)
                 {
                     List<MovieGenreInformation> movieGenreInformation = new List<MovieGenreInformation>();
-                    if (postMovieModel.GenreID != null)
+                    if (GenreIDs.Count!=0)
                     {
-                        foreach (var genreID in postMovieModel.GenreID)
+                        foreach (var genreID in GenreIDs)
                         {
                             movieGenreInformation.Add(new MovieGenreInformation
                             {
@@ -801,6 +808,8 @@ namespace MovieAPI.Controllers
                 var thumbnail = "";
                 var coverImage = "";
                 var movieURL = "";
+                var ClassID = _db.Classifications.SingleOrDefault(cls => cls.ClassName == postMovieModel.ClassName).ClassID;
+                var MovieTypeID = _db.MovieTypes.SingleOrDefault(mt => mt.MovieTypeName == postMovieModel.MovieTypeName).MovieTypeID;
                 movieInformation.MovieName = postMovieModel.MovieName;
                 movieInformation.Description = postMovieModel.Description;
                 movieInformation.Thumbnail = thumbnail;
@@ -817,16 +826,21 @@ namespace MovieAPI.Controllers
                 movieInformation.RunningTime = postMovieModel.RunningTime;
                 movieInformation.Quality = postMovieModel.Quality;
                 movieInformation.UserID = postMovieModel.UserID;
-                movieInformation.ClassID = postMovieModel.ClassID;
-                movieInformation.MovieTypeID = postMovieModel.MovieTypeID;
+                movieInformation.ClassID = ClassID;
+                movieInformation.MovieTypeID = MovieTypeID;
                 _db.MovieInformations.Update(movieInformation);
                 var returnValue = _db.SaveChanges();
+                var GenreIDs = new List<Guid>();
+                foreach (var genreName in postMovieModel.GenreName)
+                {
+                    GenreIDs.Add(_db.Genres.SingleOrDefault(g => g.GenreName == genreName).GenreID);
+                }
                 if (returnValue != 0)
                 {
                     List<MovieGenreInformation> movieGenreInformation = new List<MovieGenreInformation>();
-                    if (postMovieModel.GenreID != null)
+                    if (GenreIDs.Count != 0)
                     {
-                        foreach (var genreID in postMovieModel.GenreID)
+                        foreach (var genreID in GenreIDs)
                         {
                             movieGenreInformation.Add(new MovieGenreInformation
                             {
