@@ -31,17 +31,36 @@ namespace MovieAPI.Controllers
         }
         [Authorize]
         [HttpGet]
-        public IActionResult GetTopChat(int top)
+        public IActionResult GetAllUserChat()
         {
             logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
             try
             {
-                var tickets = context.Tickets.Select(t => t.GroupID).Distinct().Take(top).ToList();
-                return Ok(tickets);
+                var tickets = context.Tickets
+                .Select(t => t.GroupID)
+                .Distinct()
+                .ToList();
+                var Profiles = new List<object>();
+                foreach (var ticket in tickets)
+                {
+                    Profiles.Add(context.Profiles.SingleOrDefault(pro => pro.UserID == ticket));
+                }
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Ticket", tickets.Count));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Get All Chat",
+                    Data = Profiles
+                });
             }
-            catch
+            catch(Exception ex)
             {
-                return Ok(top);
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Ticket", ex.ToString()));
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal Server Error"
+                });
             }
         }
         [Authorize]
@@ -51,8 +70,11 @@ namespace MovieAPI.Controllers
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                var tickets = context.Tickets.Where(t => t.GroupID == GroupID).ToList();
-                if (tickets.Count==0)
+                var tickets = context.Tickets
+                .Where(t => t.GroupID == GroupID)
+                .OrderBy(t => t.MessageTime)
+                .ToList();
+                if (tickets.Count == 0)
                 {
                     logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Ticket", "Group not found"));
                     return NotFound(new ApiResponse

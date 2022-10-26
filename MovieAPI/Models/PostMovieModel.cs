@@ -19,8 +19,8 @@
         public float RunningTime { get; set; }
         public string Quality { get; set; }
         public Guid UserID { get; set; }
-        public Guid ClassID { get; set; }
-        public Guid MovieTypeID { get; set; }
-        public List<Guid> GenreID { get; set; }
+        public string ClassName { get; set; }
+        public string MovieTypeName { get; set; }
+        public List<string> GenreName { get; set; }
     }
 }
