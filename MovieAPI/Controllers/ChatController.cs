@@ -59,6 +59,7 @@ namespace MovieAPI.Controllers
                         UserID = profile.UserID,
                         FirstName = profile.FirstName,
                         LastName = profile.LastName,
+                        Avatar = profile.Avatar,
                         Message = myTicket[0].MessageContent,
                         Time = myTicket[0].MessageTime,
                         IsRead = myTicket[0].IsRead,
