@@ -452,12 +452,12 @@ namespace MovieAPI.Controllers
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                var listTopRating = _db.Reviews.Distinct().ToList();
+                var listTopRating = _db.Reviews.Select(r=>r.MovieID).Distinct().ToList();
                 var listmovieID = new List<MovieDTO>();
                 foreach (var item in listTopRating)
                 {
                     var movieDto = new MovieDTO();
-                    movieDto.MovieID = item.MovieID;
+                    movieDto.MovieID = item;
                     listmovieID.Add(calculateRating(movieDto));
                 }
 
@@ -482,9 +482,13 @@ namespace MovieAPI.Controllers
                     .Include(m => m.MovieGenreInformations)
                     .SingleOrDefault(m => m.MovieID == dTO.MovieID
                     && m.Quality.Equals(quality)
-                    && m.ReleaseTime.Year > releaseTimeMin
-                    && m.ReleaseTime.Year > releaseTimeMax
+                    && m.ReleaseTime.Year >= releaseTimeMin
+                    && m.ReleaseTime.Year <= releaseTimeMax
                     );
+                    if(movie == null)
+                    {
+                        continue;
+                    }
                     var check = movie.MovieGenreInformations.Any(mg => mg.GenreID == genreID);
                     if (check) movies.Add(movie);
                 }
@@ -1072,6 +1076,7 @@ namespace MovieAPI.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("none", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,

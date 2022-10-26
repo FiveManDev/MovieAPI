@@ -773,6 +773,7 @@ namespace MovieAPI.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("None", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,

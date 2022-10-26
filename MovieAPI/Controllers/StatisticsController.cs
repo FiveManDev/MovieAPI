@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MovieAPI.Data.DbConfig;
+using MovieAPI.Helpers;
 using MovieAPI.Models;
 using System.Globalization;
+using System.Reflection;
 
 namespace MovieAPI.Controllers;
 
@@ -49,6 +51,7 @@ public class StatisticsController : ControllerBase
         }
         catch (Exception ex)
         {
+            logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("None", ex.ToString()));
             return StatusCode(500, new ApiResponse
             {
                 IsSuccess = false,
