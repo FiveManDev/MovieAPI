@@ -725,6 +725,7 @@ namespace MovieAPI.Controllers
 
                 List<User> users = _db.Users
                     .Include(user => user.Profile)
+                    .Include(user => user.Profile.Classification)
                     .Include(user => user.Reviews)
                     .Where(user => user.UserName.Contains(q)
                         || user.Profile.FirstName.Contains(q)
