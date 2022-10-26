@@ -1064,7 +1064,7 @@ namespace MovieAPI.Controllers
                     IsSuccess = true,
                     Data = new
                     {
-                        reviews = movies,
+                        movies = result,
                         pager = result.paginationDTO
                     }
                 });
