@@ -1,21 +1,25 @@
-﻿namespace MovieAPI.Helpers
+﻿using MovieAPI.Models.Pagination;
+
+namespace MovieAPI.Helpers
 {
     public class PaginatedList<T> : List<T>
     {
-        public int PageIndex { get; private set; }
-        public int TotalPages { get; private set; }
-        public int PageSize { get; private set; }
-        public int TotalCount { get; set; }
+        //public int PageIndex { get; private set; }
+        //public int TotalPages { get; private set; }
+        //public int PageSize { get; private set; }
+        //public int TotalCount { get; set; }
 
-        public bool HasPrevious => PageIndex > 1;
-        public bool HasNext => PageIndex < TotalPages;
+        //public bool HasPrevious => PageIndex > 1;
+        //public bool HasNext => PageIndex < TotalPages;
+        public PaginationDTO paginationDTO; 
 
         public PaginatedList(List<T> items, int count, int pageNumber, int pageSize)
         {
-            TotalCount = count;
-            PageSize = pageSize;
-            PageIndex = pageNumber;
-            TotalPages = (int)Math.Ceiling(count / (double)pageSize);
+            paginationDTO = new PaginationDTO();
+            paginationDTO.TotalCount = count;
+            paginationDTO.PageSize = pageSize;
+            paginationDTO.PageIndex = pageNumber;
+            paginationDTO.TotalPages = (int)Math.Ceiling(count / (double)pageSize);
 
             AddRange(items);
         }

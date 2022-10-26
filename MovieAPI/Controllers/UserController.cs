@@ -725,7 +725,10 @@ namespace MovieAPI.Controllers
 
                 List<User> users = _db.Users
                     .Include(user => user.Profile)
-                    .Where(user => user.UserName.Contains(q)).ToList();
+                    .Include(user => user.Reviews)
+                    .Where(user => user.UserName.Contains(q)
+                        || user.Profile.FirstName.Contains(q)
+                        || user.Profile.LastName.Contains(q)).ToList();
 
                 if (users.Count == 0)
                 {
@@ -738,7 +741,6 @@ namespace MovieAPI.Controllers
 
                 // can not map PaginatedList???
                 var userDTOs = mapper.Map<List<User>, List<UserDTO>>(users);
-
 
                 if (sortBy == "date")
                 {
@@ -756,10 +758,16 @@ namespace MovieAPI.Controllers
                    // something
                 }
 
+                PaginatedList<UserDTO> result = PaginatedList<UserDTO>.ToPageList(userDTOs, pager.pageIndex, pager.pageSize);
+
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Data = PaginatedList<UserDTO>.ToPageList(userDTOs, pager.pageIndex, pager.pageSize)
+                    Data = new
+                    {
+                        users = result,
+                        pager = result.paginationDTO
+                    }
                 });
             }
             catch (Exception ex)

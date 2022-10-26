@@ -33,6 +33,10 @@ namespace MovieAPI.Services.Mapper
 
             // Mapping (User, UserDTO)
             CreateMap<User, UserDTO>()
+                .ForMember(
+                    des => des.NumberOfReviews,
+                    opt => opt.MapFrom(src => src.Reviews.Count())
+                )
                 .ReverseMap();
             // Mapping (Profile, ProfileDTO)
             CreateMap<Profile, ProfileDTO>()

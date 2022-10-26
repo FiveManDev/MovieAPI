@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MovieAPI.Data.DbConfig;
 using MovieAPI.Models;
 using System.Globalization;
@@ -24,6 +25,8 @@ public class StatisticsController : ControllerBase
     {
         try
         {
+            date = date != null ? date.Trim() : DateTime.Now.ToString("MMyyyy");
+
             DateTime datetime = DateTime.ParseExact(date, "MMyyyy", CultureInfo.InvariantCulture);
             int userCreatedCount = _db.Users.Where(user => user.CreateAt.Month == datetime.Month 
                                                 && user.CreateAt.Year == datetime.Year).Count();

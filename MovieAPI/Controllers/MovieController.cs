@@ -1056,12 +1056,19 @@ namespace MovieAPI.Controllers
                         movieDTOs.OrderBy(movie => movie.PublicationTime);
                     }
                 }
-                
+
+                PaginatedList<MovieDTO> result = PaginatedList<MovieDTO>.ToPageList(movieDTOs, pager.pageIndex, pager.pageSize);
+
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Data = PaginatedList<MovieDTO>.ToPageList(movieDTOs, pager.pageIndex, pager.pageSize)
+                    Data = new
+                    {
+                        reviews = movies,
+                        pager = result.paginationDTO
+                    }
                 });
+
             }
             catch (Exception ex)
             {

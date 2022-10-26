@@ -345,7 +345,10 @@ namespace MovieAPI.Controllers
                 List<Review> reviews = context.Reviews
                     .Include(review => review.User.Profile)
                     .Include(review => review.MovieInformation)
-                    .Where(review => review.ReviewContent.Contains(q)).ToList();
+                    .Where(review => review.ReviewContent.Contains(q)
+                        || review.Title.Contains(q)
+                        || review.User.Profile.FirstName.Contains(q)
+                        || review.User.Profile.LastName.Contains(q)).ToList();
 
                 if (reviews.Count == 0)
                 {
@@ -383,11 +386,18 @@ namespace MovieAPI.Controllers
                     }
                 }
 
+                PaginatedList<ReviewDTO> result = PaginatedList<ReviewDTO>.ToPageList(reviewDTOs, pager.pageIndex, pager.pageSize);
+
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Data = PaginatedList<ReviewDTO>.ToPageList(reviewDTOs, pager.pageIndex, pager.pageSize)
+                    Data = new
+                    {
+                        reviews = result,
+                        pager = result.paginationDTO
+                    }
                 });
+
             }
             catch (Exception ex)
             {
