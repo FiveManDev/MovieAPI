@@ -10,6 +10,7 @@ using MovieAPI.Models.DTO;
 using MovieAPI.Services.Attributes;
 using MovieAPI.Services.SignalR;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace MovieAPI.Controllers
 {
@@ -43,7 +44,27 @@ namespace MovieAPI.Controllers
                 var Profiles = new List<object>();
                 foreach (var ticket in tickets)
                 {
-                    Profiles.Add(context.Profiles.SingleOrDefault(pro => pro.UserID == ticket));
+                    var myTicket = context.Tickets
+                        .Where(t=>t.GroupID==ticket)
+                        .OrderByDescending(t=>t.MessageTime)
+                        .Take(1).ToList();
+                    if (myTicket[0].IsFromAdmin)
+                    {
+                        myTicket[0].IsRead = true;
+
+                    }
+                    var profile= context.Profiles.SingleOrDefault(pro => pro.UserID == ticket);
+                    var ticketObject = new
+                    {
+                        UserID = profile.UserID,
+                        FirstName = profile.FirstName,
+                        LastName = profile.LastName,
+                        Message = myTicket[0].MessageContent,
+                        Time = myTicket[0].MessageTime,
+                        IsRead = myTicket[0].IsRead,
+                        TicketID = myTicket[0].TicketID
+                    };
+                    Profiles.Add(ticketObject);
                 }
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("Ticket", tickets.Count));
                 return Ok(new ApiResponse
@@ -117,7 +138,8 @@ namespace MovieAPI.Controllers
                     ReceiverId = chatModel.GroupID,
                     MessageContent = chatModel.Message,
                     MessageTime = DateTime.Now,
-                    GroupID = chatModel.GroupID
+                    GroupID = chatModel.GroupID,
+                    IsRead = false
                 };
                 context.Tickets.Add(ticket);
                 var returnValue = context.SaveChanges();
@@ -157,7 +179,8 @@ namespace MovieAPI.Controllers
                     IsFromAdmin = true,
                     MessageContent = chatModel.Message,
                     MessageTime = DateTime.Now,
-                    GroupID = chatModel.GroupID
+                    GroupID = chatModel.GroupID,
+                    IsRead = false
                 };
                 context.Tickets.Add(ticket);
                 var returnValue = context.SaveChanges();
@@ -176,6 +199,46 @@ namespace MovieAPI.Controllers
             catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.PostDataError("Ticket", ex.ToString()));
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal Server Error"
+                });
+            }
+        }
+        [HttpPut]
+        public IActionResult UpdateReadStatus(Guid TicketID)
+        {
+            try
+            {
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
+                var ticket = context.Tickets.SingleOrDefault(t=>t.TicketID == TicketID);
+                if (ticket == null)
+                {
+                    logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("Ticket", "Ticket not found"));
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Ticket not failed"
+                    });
+                }
+                ticket.IsRead = true;
+                context.Tickets.Update(ticket);
+                var returnValue = context.SaveChanges();
+                if (returnValue == 0)
+                {
+                    throw new Exception("Update Data of ticket fealse");
+                }
+                logger.LogInformation(MethodBase.GetCurrentMethod().Name.PutDataSuccess("Ticket", 1));
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Message = "Update ticket success"
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(MethodBase.GetCurrentMethod()!.Name.PutDataError("Ticket", ex.ToString()));
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,

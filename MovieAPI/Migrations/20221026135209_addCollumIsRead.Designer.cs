@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MovieAPI.Data.DbConfig;
 
@@ -11,9 +12,10 @@ using MovieAPI.Data.DbConfig;
 namespace MovieAPI.Migrations
 {
     [DbContext(typeof(MovieAPIDbContext))]
-    partial class MovieAPIDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221026135209_addCollumIsRead")]
+    partial class addCollumIsRead
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
