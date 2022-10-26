@@ -8,6 +8,7 @@ using MovieAPI.Data.DbConfig;
 using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
+using MovieAPI.Models.Pagination;
 using MovieAPI.Services.Attributes;
 using MovieAPI.Services.SignalR;
 using System.Reflection;
@@ -326,6 +327,70 @@ namespace MovieAPI.Controllers
             catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.DeleteDataError("Reviews", ex.ToString()));
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal Server Error"
+                });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetReviews([FromQuery] Pager pager, string q = "", string sortBy = "date", string sortType = "desc")
+        {
+            try
+            {
+                q = q == null ? "" : q.Trim();
+
+                List<Review> reviews = context.Reviews
+                    .Include(review => review.User.Profile)
+                    .Include(review => review.MovieInformation)
+                    .Where(review => review.ReviewContent.Contains(q)).ToList();
+
+                if (reviews.Count == 0)
+                {
+                    return Ok(new ApiResponse
+                    {
+                        IsSuccess = true,
+                        Data = null
+                    });
+                }
+
+                // can not map PaginatedList???
+                var reviewDTOs = mapper.Map<List<Review>, List<ReviewDTO>>(reviews);
+
+
+                if (sortBy == "date")
+                {
+                    if (sortType.ToLower() == "desc")
+                    {
+                        reviewDTOs.OrderByDescending(review => review.ReviewTime);
+                    }
+                    else if (sortType.ToLower() == "asc")
+                    {
+                        reviewDTOs.OrderBy(review => review.ReviewTime);
+                    }
+                }
+                else if (sortBy == "rating")
+                {
+                    if (sortType.ToLower() == "desc")
+                    {
+                        reviewDTOs.OrderByDescending(review => review.Rating);
+                    }
+                    else if (sortType.ToLower() == "asc")
+                    {
+                        reviewDTOs.OrderBy(review => review.Rating);
+                    }
+                }
+
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Data = PaginatedList<ReviewDTO>.ToPageList(reviewDTOs, pager.pageIndex, pager.pageSize)
+                });
+            }
+            catch (Exception ex)
+            {
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,

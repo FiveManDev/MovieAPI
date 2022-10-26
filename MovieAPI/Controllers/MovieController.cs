@@ -1,4 +1,5 @@
-﻿using Amazon.S3;
+﻿using Amazon.Auth.AccessControlPolicy;
+using Amazon.S3;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,8 +12,11 @@ using MovieAPI.Models;
 using MovieAPI.Models.DTO;
 using MovieAPI.Models.Pagination;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Reflection;
+using System.Runtime;
 
 namespace MovieAPI.Controllers
 {
@@ -984,7 +988,9 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                IQueryable<MovieInformation> moviesQueryable = _db.MovieInformations
+                q = q == null ? "" : q.Trim();
+
+                List<MovieInformation> movies = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
@@ -992,26 +998,7 @@ namespace MovieAPI.Controllers
                     .Where(movie => movie.MovieName.Contains(q)
                                  || movie.Description.Contains(q)
                                  || movie.Actor.Contains(q)
-                                 || movie.Director.Contains(q));
-
-                if (sortBy == "date")
-                {
-                    if (sortType.ToLower() == "desc")
-                    {
-                        moviesQueryable.OrderByDescending(movie => movie.PublicationTime);
-                    }
-                    else if (sortType.ToLower() == "asc")
-                    {
-                        moviesQueryable.OrderBy(movie => movie.PublicationTime);
-                    }
-                }
-                else if (sortBy == "rating")
-                {
-
-                    // do nothing...maybe later :D
-                }
-
-                var movies = PaginatedList<MovieInformation>.ToPageList(moviesQueryable.AsNoTracking(), pager.pageIndex, pager.pageSize);
+                                 || movie.Director.Contains(q)).ToList();
 
                 if (movies.Count == 0)
                 {
@@ -1021,28 +1008,45 @@ namespace MovieAPI.Controllers
                         Data = null
                     });
                 }
+
                 // can not map PaginatedList???
                 var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
-                // calcute rating and get genre name
+
                 movieDTOs.ForEach(movieDTO =>
                 {
-                    movieDTO = calculateRating(movieDTO);
+                    // calcute rating and get genre name
                     movieDTO = getGenreName(movieDTO);
+                    movieDTO = calculateRating(movieDTO);
                 });
+
+                if (sortBy == "date")
+                {
+                    if (sortType.ToLower() == "desc")
+                    {
+                        movieDTOs.OrderByDescending(movie => movie.PublicationTime);
+                    }
+                    else if (sortType.ToLower() == "asc")
+                    {
+                        movieDTOs.OrderBy(movie => movie.PublicationTime);
+                    }
+                }
+                else if (sortBy == "rating")
+                {
+                    // do nothing...maybe later :D
+                    if (sortType.ToLower() == "desc")
+                    {
+                        movieDTOs.OrderByDescending(movie => movie.PublicationTime);
+                    }
+                    else if (sortType.ToLower() == "asc")
+                    {
+                        movieDTOs.OrderBy(movie => movie.PublicationTime);
+                    }
+                }
+                
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Data = new
-                    {
-                        Movies = movieDTOs,
-                        PageIndex = movies.PageIndex,
-                        TotalPage = movies.TotalPages,
-                        PageSize = movies.PageSize,
-                        TotalCount = movies.TotalCount,
-                        HasPrevious = movies.HasPrevious,
-                        HasNext = movies.HasNext,
-                        // ????
-                    }
+                    Data = PaginatedList<MovieDTO>.ToPageList(movieDTOs, pager.pageIndex, pager.pageSize)
                 });
             }
             catch (Exception ex)

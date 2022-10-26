@@ -8,6 +8,7 @@ using MovieAPI.Data.DbConfig;
 using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
+using MovieAPI.Models.Pagination;
 using MovieAPI.Services;
 using MovieAPI.Services.Attributes;
 using MovieAPI.Services.Mail;
@@ -707,6 +708,62 @@ namespace MovieAPI.Controllers
             catch (Exception ex)
             {
                 logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("User", ex.ToString()));
+                return StatusCode(500, new ApiResponse
+                {
+                    IsSuccess = false,
+                    Message = "Internal Server Error"
+                });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetUsers([FromQuery] Pager pager, string q = "", string sortBy = "date", string sortType = "desc")
+        {
+            try
+            {
+                q = q == null ? "" : q.Trim();
+
+                List<User> users = _db.Users
+                    .Include(user => user.Profile)
+                    .Where(user => user.UserName.Contains(q)).ToList();
+
+                if (users.Count == 0)
+                {
+                    return Ok(new ApiResponse
+                    {
+                        IsSuccess = true,
+                        Data = null
+                    });
+                }
+
+                // can not map PaginatedList???
+                var userDTOs = mapper.Map<List<User>, List<UserDTO>>(users);
+
+
+                if (sortBy == "date")
+                {
+                    if (sortType.ToLower() == "desc")
+                    {
+                        userDTOs.OrderByDescending(user => user.CreateAt);
+                    }
+                    else if (sortType.ToLower() == "asc")
+                    {
+                        userDTOs.OrderBy(user => user.CreateAt);
+                    }
+                }
+                else if (sortBy == "rating")
+                {
+                   // something
+                }
+
+                return Ok(new ApiResponse
+                {
+                    IsSuccess = true,
+                    Data = PaginatedList<UserDTO>.ToPageList(userDTOs, pager.pageIndex, pager.pageSize)
+                });
+            }
+            catch (Exception ex)
+            {
                 return StatusCode(500, new ApiResponse
                 {
                     IsSuccess = false,

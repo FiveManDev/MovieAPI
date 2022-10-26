@@ -29,5 +29,14 @@
 
             return new PaginatedList<T>(items, count, pageNumber, pageSize);
         }
+        public static PaginatedList<T> ToPageList(List<T> source, int pageNumber, int pageSize)
+        {
+            var count = source.Count();
+            var items = source.Skip((pageNumber - 1) * pageSize)
+                              .Take(pageSize)
+                              .ToList();
+
+            return new PaginatedList<T>(items, count, pageNumber, pageSize);
+        }
     }
 }
