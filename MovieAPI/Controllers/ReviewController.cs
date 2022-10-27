@@ -307,7 +307,7 @@ namespace MovieAPI.Controllers
             }
         }
         [HttpDelete]
-        public async Task<IActionResult> DeleteReview([FromBody] Guid ReviewID)
+        public async Task<IActionResult> DeleteReview(Guid ReviewID)
         {
             try
             {

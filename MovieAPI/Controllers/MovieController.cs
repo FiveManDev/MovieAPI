@@ -884,7 +884,7 @@ namespace MovieAPI.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpDelete]
-        public IActionResult DeleteMovie([FromBody][Required] Guid movieID)
+        public IActionResult DeleteMovie(Guid movieID)
         {
             try
             {
