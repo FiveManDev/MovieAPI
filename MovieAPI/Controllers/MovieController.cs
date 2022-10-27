@@ -94,7 +94,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
-                    .Where(movie => movie.IsVisible !=false)
+                    .Where(movie => movie.IsVisible != false)
                     .OrderByDescending(movie => movie.PublicationTime)
                     .ToList();
                 if (movies.Count == 0)
@@ -145,7 +145,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
-                    .Where(movie => movie.IsVisible !=false)
+                    .Where(movie => movie.IsVisible != false)
                     .OrderByDescending(movie => movie.ReleaseTime)
                     .Take(top).ToList();
 
@@ -189,14 +189,14 @@ namespace MovieAPI.Controllers
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                
+
 
                 var movies = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
-                    .Where(movie => movie.IsVisible !=false)
+                    .Where(movie => movie.IsVisible != false)
                     .Where(movie => string.Equals(movie.Classification.ClassName, "Premium"))
                     .ToList();
 
@@ -248,7 +248,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
-                    .Where(movie => movie.IsVisible !=false)
+                    .Where(movie => movie.IsVisible != false)
                     .OrderByDescending(movie => movie.PublicationTime)
                     .Take(top).ToList();
 
@@ -301,7 +301,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
-                    .Where(movie => movie.IsVisible !=false)
+                    .Where(movie => movie.IsVisible != false)
                     .Where(movie => movie.MovieTypeID == typeId)
                     .Take(top).ToList();
 
@@ -352,9 +352,9 @@ namespace MovieAPI.Controllers
                     .Include(mg => mg.MovieInformation.User.Profile)
                     .Include(mg => mg.MovieInformation.Classification)
                     .Include(mg => mg.MovieInformation.MovieType)
-                    .Where(mg => 
+                    .Where(mg =>
                     mg.GenreID == genreID
-                    && mg.MovieInformation.IsVisible !=false )
+                    && mg.MovieInformation.IsVisible != false)
                     .Select(mg => mg.MovieInformation)
                     .Take(top)
                     .ToList();
@@ -407,7 +407,7 @@ namespace MovieAPI.Controllers
                     .Include(m => m.Classification)
                     .Include(m => m.MovieType)
                     .Include(m => m.MovieGenreInformations)
-                    .Where(movie => movie.IsVisible !=false)
+                    .Where(movie => movie.IsVisible != false)
                     .SingleOrDefault(m => m.MovieID == dTO.MovieID);
                     movies.Add(movie);
                 }
@@ -451,8 +451,18 @@ namespace MovieAPI.Controllers
         {
             try
             {
+                if (genreID == Guid.Empty && quality == null && ratingMin == 0 && ratingMax == 0 && releaseTimeMin == 0 && releaseTimeMax == 0)
+                {
+                    var movie = _db.MovieInformations.ToList();
+                    return Ok(new ApiResponse
+                    {
+                        IsSuccess = true,
+                        Message = "Get Movie Base On Filter Success",
+                        Data = movie
+                    });
+                }
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                var listTopRating = _db.Reviews.Select(r=>r.MovieID).Distinct().ToList();
+                var listTopRating = _db.Reviews.Select(r => r.MovieID).Distinct().ToList();
                 var listmovieID = new List<MovieDTO>();
                 foreach (var item in listTopRating)
                 {
@@ -485,7 +495,7 @@ namespace MovieAPI.Controllers
                     && m.ReleaseTime.Year >= releaseTimeMin
                     && m.ReleaseTime.Year <= releaseTimeMax
                     );
-                    if(movie == null)
+                    if (movie == null)
                     {
                         continue;
                     }
@@ -542,7 +552,7 @@ namespace MovieAPI.Controllers
                     .Include(m => m.Classification)
                     .Include(m => m.MovieType)
                     .Include(m => m.MovieGenreInformations)
-                    .Where(movie => movie.IsVisible !=false)
+                    .Where(movie => movie.IsVisible != false)
                     .SingleOrDefault(m => m.MovieID == dTO.MovieID);
                     if (movie == null) movies.Add(movie);
                 }
@@ -566,7 +576,7 @@ namespace MovieAPI.Controllers
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Message = "Get Top Latest Release Movies Success",
+                    Message = "Get Movie Base On Filter Success",
                     Data = movieDTOs
                 });
             }
@@ -766,7 +776,7 @@ namespace MovieAPI.Controllers
                 if (returnValue != 0)
                 {
                     List<MovieGenreInformation> movieGenreInformation = new List<MovieGenreInformation>();
-                    if (GenreIDs.Count!=0)
+                    if (GenreIDs.Count != 0)
                     {
                         foreach (var genreID in GenreIDs)
                         {
