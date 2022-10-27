@@ -722,7 +722,7 @@ namespace MovieAPI.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<IActionResult> PostMovie([FromBody] PostMovieModel postMovieModel)
+        public async Task<IActionResult> PostMovie([FromForm] PostMovieModel postMovieModel)
         {
             try
             {
@@ -804,7 +804,7 @@ namespace MovieAPI.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut]
-        public async Task<IActionResult> UpdateMovie([FromBody] PostMovieModel postMovieModel)
+        public async Task<IActionResult> UpdateMovie([FromForm] PostMovieModel postMovieModel)
         {
             try
             {

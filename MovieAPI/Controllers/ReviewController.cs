@@ -235,7 +235,19 @@ namespace MovieAPI.Controllers
                 {
                     throw new Exception("Save data of review failed");
                 }
-                await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("SendReview", review);
+                var Profile = context.Profiles.SingleOrDefault(pro=>pro.UserID==reviewDTO.UserID);
+                var reviewObject = new{
+                    Title = review.Title,
+                    ReviewContent = review.ReviewContent,
+                    Rating = review.Rating,
+                    ReviewTime = review.ReviewTime,
+                    UserID = review.UserID,
+                    MovieID = review.MovieID,
+                    FirstName = Profile.FirstName,
+                    LastName = Profile.LastName,
+                    Avatar = Profile.Avatar,
+                };
+                await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("SendReview", reviewObject);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataSuccess("Profile"));
                 return Ok(new ApiResponse
                 {
