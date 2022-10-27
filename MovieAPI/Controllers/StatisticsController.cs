@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MovieAPI.Data.DbConfig;
 using MovieAPI.Helpers;
@@ -60,4 +61,80 @@ public class StatisticsController : ControllerBase
         }
     }
 
+    [HttpGet]
+    public IActionResult getTotalUser()
+    {
+        try
+        {
+            var totalUser = _db.Users.Count();
+
+            return Ok(new ApiResponse
+            {
+                IsSuccess = true,
+                Data = totalUser
+            });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("None", ex.ToString()));
+            return StatusCode(500, new ApiResponse
+            {
+                IsSuccess = false,
+                Message = "Internal Server Error"
+            });
+        }
+    }
+
+    [HttpGet]
+    public IActionResult getTotalReview()
+    {
+        try
+        {
+            var totalReview = _db.Reviews.Count();
+
+            return Ok(new ApiResponse
+            {
+                IsSuccess = true,
+                Data = totalReview
+            });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("None", ex.ToString()));
+            return StatusCode(500, new ApiResponse
+            {
+                IsSuccess = false,
+                Message = "Internal Server Error"
+            });
+        }
+    }
+
+
+    [HttpGet]
+    public IActionResult getTotalChat()
+    {
+        try
+        {
+
+            var totalChat = _db.Tickets
+                                .Select(t => t.GroupID)
+                                .Distinct()
+                                .Count();
+            
+            return Ok(new ApiResponse
+            {
+                IsSuccess = true,
+                Data = totalChat
+            });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("None", ex.ToString()));
+            return StatusCode(500, new ApiResponse
+            {
+                IsSuccess = false,
+                Message = "Internal Server Error"
+            });
+        }
+    }
 }
