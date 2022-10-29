@@ -453,12 +453,23 @@ namespace MovieAPI.Controllers
             {
                 if (genreID == Guid.Empty && quality == null && ratingMin == 0 && ratingMax == 0 && releaseTimeMin == 0 && releaseTimeMax == 0)
                 {
-                    var movie = _db.MovieInformations.ToList();
+                    var movie = _db.MovieInformations
+                        .Include(m => m.User.Profile)
+                        .Include(m => m.Classification)
+                        .Include(m => m.MovieType)
+                        .Include(m => m.MovieGenreInformations)
+                        .ToList();
+                    var moviesDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movie);
+                    moviesDTOs.ForEach(movieDTO =>
+                    {
+                        movieDTO = calculateRating(movieDTO);
+                        movieDTO = getGenreName(movieDTO);
+                    });
                     return Ok(new ApiResponse
                     {
                         IsSuccess = true,
                         Message = "Get Movie Base On Filter Success",
-                        Data = movie
+                        Data = moviesDTOs
                     });
                 }
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
