@@ -352,17 +352,15 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                q = (q == null) ? "" : q.Trim();
-                sortBy = (sortBy == null) ? "date" : sortBy.Trim();
-                sortType = (sortType == null) ? "desc" : sortType.Trim();
+                q = (q == null) ? "" : q.Trim().ToLower();
 
                 List<Review> reviews = context.Reviews
                     .Include(review => review.User.Profile)
                     .Include(review => review.MovieInformation)
-                    .Where(review => review.ReviewContent.Contains(q)
-                        || review.Title.Contains(q)
-                        || review.User.Profile.FirstName.Contains(q)
-                        || review.User.Profile.LastName.Contains(q)).ToList();
+                    .Where(review => review.ReviewContent.ToLower().Contains(q)
+                        || review.Title.ToLower().Contains(q)
+                        || review.User.Profile.FirstName.ToLower().Contains(q)
+                        || review.User.Profile.LastName.ToLower().Contains(q)).ToList();
 
                 if (reviews.Count == 0)
                 {
@@ -376,25 +374,26 @@ namespace MovieAPI.Controllers
                 // can not map PaginatedList???
                 var reviewDTOs = mapper.Map<List<Review>, List<ReviewDTO>>(reviews);
 
-
-                if (sortBy.ToLower() == "date")
+                sortBy = (sortBy == null) ? "date" : sortBy.Trim().ToLower();
+                sortType = (sortType == null) ? "desc" : sortType.Trim().ToLower();
+                if (sortBy == "date")
                 {
-                    if (sortType.ToLower() == "desc")
+                    if (sortType == "desc")
                     {
                         reviewDTOs = reviewDTOs.OrderByDescending(review => review.ReviewTime).ToList();
                     }
-                    else if (sortType.ToLower() == "asc")
+                    else if (sortType == "asc")
                     {
                         reviewDTOs = reviewDTOs.OrderBy(review => review.ReviewTime).ToList();
                     }
                 }
-                else if (sortBy.ToLower() == "rating")
+                else if (sortBy == "rating")
                 {
-                    if (sortType.ToLower() == "desc")
+                    if (sortType == "desc")
                     {
                         reviewDTOs = reviewDTOs.OrderByDescending(review => review.Rating).ToList();
                     }
-                    else if (sortType.ToLower() == "asc")
+                    else if (sortType == "asc")
                     {
                         reviewDTOs = reviewDTOs.OrderBy(review => review.Rating).ToList();
                     }

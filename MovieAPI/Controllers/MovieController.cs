@@ -1028,19 +1028,14 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                q = (q == null) ? "" : q.Trim();
-                sortBy = (sortBy == null) ? "date" : sortBy.Trim();
-                sortType = (sortType == null) ? "desc" : sortType.Trim();
-
+                q = (q == null) ? "" : q.Trim().ToLower();
+    
                 List<MovieInformation> movies = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
-                    .Where(movie => movie.MovieName.Contains(q)
-                                 || movie.Description.Contains(q)   
-                                 || movie.Actor.Contains(q)
-                                 || movie.Director.Contains(q)).ToList();
+                    .Where(movie => movie.MovieName.ToLower().Contains(q)).ToList();
 
                 if (movies.Count == 0)
                 {
@@ -1061,25 +1056,28 @@ namespace MovieAPI.Controllers
                     movieDTO = calculateRating(movieDTO);
                 });
 
-                if (sortBy.ToLower() == "date")
+                sortBy = (sortBy == null) ? "date" : sortBy.Trim().ToLower();
+                sortType = (sortType == null) ? "desc" : sortType.Trim().ToLower();
+
+                if (sortBy == "date")
                 {
-                    if (sortType.ToLower() == "desc")
+                    if (sortType == "desc")
                     {
                         movieDTOs = movieDTOs.OrderByDescending(movie => movie.PublicationTime).ToList();
                     }
-                    else if (sortType.ToLower() == "asc")
+                    else if (sortType == "asc")
                     {
                         movieDTOs = movieDTOs.OrderBy(movie => movie.PublicationTime).ToList();
                     }
                 }
-                else if (sortBy.ToLower() == "rating")
+                else if (sortBy == "rating")
                 {
                     // do nothing...maybe later :D
-                    if (sortType.ToLower() == "desc")
+                    if (sortType == "desc")
                     {
                         movieDTOs = movieDTOs.OrderByDescending(movie => movie.Rating).ToList();
                     }
-                    else if (sortType.ToLower() == "asc")
+                    else if (sortType == "asc")
                     {
                         movieDTOs = movieDTOs.OrderBy(movie => movie.Rating).ToList();
                     }

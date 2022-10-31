@@ -731,17 +731,15 @@ namespace MovieAPI.Controllers
         {
             try
             {
-                q = (q == null) ? "" : q.Trim();
-                sortBy = (sortBy == null) ? "date" : sortBy.Trim();
-                sortType = (sortType == null) ? "desc" : sortType.Trim();
-
+                q = (q == null) ? "" : q.Trim().ToLower();
+               
                 List<User> users = _db.Users
                     .Include(user => user.Profile)
                     .Include(user => user.Profile.Classification)
                     .Include(user => user.Reviews)
-                    .Where(user => user.UserName.Contains(q)
-                        || user.Profile.FirstName.Contains(q)
-                        || user.Profile.LastName.Contains(q)).ToList();
+                    .Where(user => user.UserName.ToLower().Contains(q)
+                        || user.Profile.FirstName.ToLower().Contains(q)
+                        || user.Profile.LastName.ToLower().Contains(q)).ToList();
 
                 if (users.Count == 0)
                 {
@@ -755,20 +753,29 @@ namespace MovieAPI.Controllers
                 // can not map PaginatedList???
                 var userDTOs = mapper.Map<List<User>, List<UserDTO>>(users);
 
-                if (sortBy.ToLower() == "date")
+                sortBy = (sortBy == null) ? "date" : sortBy.Trim().ToLower();
+                sortType = (sortType == null) ? "desc" : sortType.Trim().ToLower();
+                if (sortBy == "date")
                 {
-                    if (sortType.ToLower() == "desc")
+                    if (sortType == "desc")
                     {
                         userDTOs = userDTOs.OrderByDescending(user => user.CreateAt).ToList();
                     }
-                    else if (sortType.ToLower() == "asc")
+                    else if (sortType == "asc")
                     {
                         userDTOs = userDTOs.OrderBy(user => user.CreateAt).ToList();
                     }
                 }
-                else if (sortBy.ToLower() == "rating")
+                else if (sortBy == "status")
                 {
-                   // something
+                    if (sortType == "desc")
+                    {
+                        userDTOs = userDTOs.OrderByDescending(user => user.Status).ToList();
+                    }
+                    else if (sortType == "asc")
+                    {
+                        userDTOs = userDTOs.OrderBy(user => user.Status).ToList();
+                    }
                 }
 
                 PaginatedList<UserDTO> result = PaginatedList<UserDTO>.ToPageList(userDTOs, pager.pageIndex, pager.pageSize);
