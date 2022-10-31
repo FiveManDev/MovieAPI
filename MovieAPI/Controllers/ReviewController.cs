@@ -375,7 +375,7 @@ namespace MovieAPI.Controllers
                 var reviewDTOs = mapper.Map<List<Review>, List<ReviewDTO>>(reviews);
 
 
-                if (sortBy == "date")
+                if (sortBy.ToLower() == "date")
                 {
                     if (sortType.ToLower() == "desc")
                     {
@@ -386,7 +386,7 @@ namespace MovieAPI.Controllers
                         reviewDTOs.OrderBy(review => review.ReviewTime);
                     }
                 }
-                else if (sortBy == "rating")
+                else if (sortBy.ToLower() == "rating")
                 {
                     if (sortType.ToLower() == "desc")
                     {

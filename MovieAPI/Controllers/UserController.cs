@@ -127,6 +127,16 @@ namespace MovieAPI.Controllers
                 }
                 if (HashPassword.VerifyPasswordHash(loginUserDTO.Password, user.PasswordHash, user.PasswordSalt))
                 {
+                    bool isBanned = !user.Status;
+                    if (isBanned)
+                    {
+                        return StatusCode(403, new ApiResponse
+                        {
+                            IsSuccess = false,
+                            Message = "Login Failed! The account is banned!"
+                        });
+                    }
+
                     logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.GetDataSuccess("User", 1));
                     var TokensExist = _db.Tokens!.FirstOrDefault(token => token.UserID == user.UserID);
                     if (TokensExist != null)
@@ -149,7 +159,6 @@ namespace MovieAPI.Controllers
                         IsSuccess = true,
                         Message = "Login Success",
                         Data = Token
-
                     });
                 }
                 else
@@ -172,6 +181,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+
         [Authorize]
         [UserBanned]
         [HttpPost]
@@ -743,7 +753,7 @@ namespace MovieAPI.Controllers
                 // can not map PaginatedList???
                 var userDTOs = mapper.Map<List<User>, List<UserDTO>>(users);
 
-                if (sortBy == "date")
+                if (sortBy.ToLower() == "date")
                 {
                     if (sortType.ToLower() == "desc")
                     {
@@ -754,7 +764,7 @@ namespace MovieAPI.Controllers
                         userDTOs.OrderBy(user => user.CreateAt);
                     }
                 }
-                else if (sortBy == "rating")
+                else if (sortBy.ToLower() == "rating")
                 {
                    // something
                 }

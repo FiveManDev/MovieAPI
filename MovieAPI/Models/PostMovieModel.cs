@@ -7,7 +7,7 @@
         public string Description { get; set; }
         public IFormFile Thumbnail { get; set; }
         public string Country { get; set; }
-        public List<string> Actor { get; set; }
+        public string Actor { get; set; }
         public string Director { get; set; }
         public string Language { get; set; }
         public string Subtitle { get; set; }

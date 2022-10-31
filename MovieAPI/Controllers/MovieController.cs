@@ -1058,7 +1058,7 @@ namespace MovieAPI.Controllers
                     movieDTO = calculateRating(movieDTO);
                 });
 
-                if (sortBy == "date")
+                if (sortBy.ToLower() == "date")
                 {
                     if (sortType.ToLower() == "desc")
                     {
@@ -1069,7 +1069,7 @@ namespace MovieAPI.Controllers
                         movieDTOs.OrderBy(movie => movie.PublicationTime);
                     }
                 }
-                else if (sortBy == "rating")
+                else if (sortBy.ToLower() == "rating")
                 {
                     // do nothing...maybe later :D
                     if (sortType.ToLower() == "desc")
