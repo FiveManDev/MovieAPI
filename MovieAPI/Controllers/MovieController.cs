@@ -12,6 +12,7 @@ using MovieAPI.Helpers;
 using MovieAPI.Models;
 using MovieAPI.Models.DTO;
 using MovieAPI.Models.Pagination;
+using MovieAPI.Services.AWS;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -749,12 +750,29 @@ namespace MovieAPI.Controllers
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                // var thumbnail = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Thumbnail, EnumObject.FileType.Image);
-                // var coverImage = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.CoverImage, EnumObject.FileType.Image);
-                // var movieURL = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Movie, EnumObject.FileType.Video);
-                var thumbnail = "";
-                var coverImage = "";
-                var movieURL = "";
+                if(postMovieModel.Thumbnail==null|| postMovieModel.CoverImage==null || postMovieModel.Movie == null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        IsSuccess=false,
+                        Message = "File is null"
+                    });
+                }
+                var thumbnail = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Thumbnail, EnumObject.FileType.Image);
+                if (thumbnail == "")
+                {
+                    throw new Exception("Server error");
+                }
+                var coverImage = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.CoverImage, EnumObject.FileType.Image);
+                if (coverImage == "")
+                {
+                    throw new Exception("Server error");
+                }
+                var movieURL = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Movie, EnumObject.FileType.Video);
+                if (movieURL == "")
+                {
+                    throw new Exception("Server error");
+                }
                 var ClassID = _db.Classifications.SingleOrDefault(cls => cls.ClassName == postMovieModel.ClassName).ClassID;
                 var MovieTypeID = _db.MovieTypes.SingleOrDefault(mt => mt.MovieTypeName == postMovieModel.MovieTypeName).MovieTypeID;
                 var movieInformation = new MovieInformation
@@ -832,12 +850,21 @@ namespace MovieAPI.Controllers
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var movieInformation = _db.MovieInformations.Find(postMovieModel.MovieID);
-                // var thumbnail = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Thumbnail, EnumObject.FileType.Image);
-                // var coverImage = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.CoverImage, EnumObject.FileType.Image);
-                // var movieURL = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Movie, EnumObject.FileType.Video);
-                var thumbnail = "";
-                var coverImage = "";
-                var movieURL = "";
+                var thumbnail = movieInformation.Thumbnail;
+                var coverImage = movieInformation.CoverImage;
+                     var movieURL=movieInformation.MovieURL;
+                if (postMovieModel.Thumbnail != null)
+                {
+                    thumbnail = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Thumbnail, EnumObject.FileType.Image);
+                }
+                if (postMovieModel.CoverImage != null)
+                {
+                    coverImage = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.CoverImage, EnumObject.FileType.Image);
+                }
+                if (postMovieModel.Movie != null)
+                {
+                    movieURL = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Movie, EnumObject.FileType.Video);
+                }
                 var ClassID = _db.Classifications.SingleOrDefault(cls => cls.ClassName == postMovieModel.ClassName).ClassID;
                 var MovieTypeID = _db.MovieTypes.SingleOrDefault(mt => mt.MovieTypeName == postMovieModel.MovieTypeName).MovieTypeID;
                 movieInformation.MovieName = postMovieModel.MovieName;
