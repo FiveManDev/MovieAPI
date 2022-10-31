@@ -360,7 +360,8 @@ namespace MovieAPI.Controllers
                     .Where(review => review.ReviewContent.ToLower().Contains(q)
                         || review.Title.ToLower().Contains(q)
                         || review.User.Profile.FirstName.ToLower().Contains(q)
-                        || review.User.Profile.LastName.ToLower().Contains(q)).ToList();
+                        || review.User.Profile.LastName.ToLower().Contains(q)
+                        || review.MovieInformation.MovieName.ToLower().Contains(q)).ToList();
 
                 if (reviews.Count == 0)
                 {
