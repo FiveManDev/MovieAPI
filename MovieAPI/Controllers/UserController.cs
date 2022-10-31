@@ -727,11 +727,13 @@ namespace MovieAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetUsers([FromQuery] Pager pager, string q = "", string sortBy = "date", string sortType = "desc")
+        public IActionResult GetUsers([FromQuery] Pager pager, string q, string sortBy, string sortType)
         {
             try
             {
-                q = q == null ? "" : q.Trim();
+                q = (q == null) ? "" : q.Trim();
+                sortBy = (sortBy == null) ? "date" : sortBy.Trim();
+                sortType = (sortType == null) ? "desc" : sortType.Trim();
 
                 List<User> users = _db.Users
                     .Include(user => user.Profile)
@@ -757,11 +759,11 @@ namespace MovieAPI.Controllers
                 {
                     if (sortType.ToLower() == "desc")
                     {
-                        userDTOs.OrderByDescending(user => user.CreateAt);
+                        userDTOs = userDTOs.OrderByDescending(user => user.CreateAt).ToList();
                     }
                     else if (sortType.ToLower() == "asc")
                     {
-                        userDTOs.OrderBy(user => user.CreateAt);
+                        userDTOs = userDTOs.OrderBy(user => user.CreateAt).ToList();
                     }
                 }
                 else if (sortBy.ToLower() == "rating")

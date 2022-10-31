@@ -348,11 +348,13 @@ namespace MovieAPI.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetReviews([FromQuery] Pager pager, string q = "", string sortBy = "date", string sortType = "desc")
+        public IActionResult GetReviews([FromQuery] Pager pager, string q, string sortBy, string sortType)
         {
             try
             {
-                q = q == null ? "" : q.Trim();
+                q = (q == null) ? "" : q.Trim();
+                sortBy = (sortBy == null) ? "date" : sortBy.Trim();
+                sortType = (sortType == null) ? "desc" : sortType.Trim();
 
                 List<Review> reviews = context.Reviews
                     .Include(review => review.User.Profile)
@@ -379,22 +381,22 @@ namespace MovieAPI.Controllers
                 {
                     if (sortType.ToLower() == "desc")
                     {
-                        reviewDTOs.OrderByDescending(review => review.ReviewTime);
+                        reviewDTOs = reviewDTOs.OrderByDescending(review => review.ReviewTime).ToList();
                     }
                     else if (sortType.ToLower() == "asc")
                     {
-                        reviewDTOs.OrderBy(review => review.ReviewTime);
+                        reviewDTOs = reviewDTOs.OrderBy(review => review.ReviewTime).ToList();
                     }
                 }
                 else if (sortBy.ToLower() == "rating")
                 {
                     if (sortType.ToLower() == "desc")
                     {
-                        reviewDTOs.OrderByDescending(review => review.Rating);
+                        reviewDTOs = reviewDTOs.OrderByDescending(review => review.Rating).ToList();
                     }
                     else if (sortType.ToLower() == "asc")
                     {
-                        reviewDTOs.OrderBy(review => review.Rating);
+                        reviewDTOs = reviewDTOs.OrderBy(review => review.Rating).ToList();
                     }
                 }
 

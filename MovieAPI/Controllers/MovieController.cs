@@ -1,5 +1,6 @@
 ﻿using Amazon.Auth.AccessControlPolicy;
 using Amazon.S3;
+using Amazon.S3.Model;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -1023,11 +1024,13 @@ namespace MovieAPI.Controllers
 
         // Get Movies Based On Search Text
         [HttpGet]
-        public IActionResult GetMovies([FromQuery] Pager pager, string q = "", string sortBy = "date", string sortType = "desc")
+        public IActionResult GetMovies([FromQuery] Pager pager, string q, string sortBy, string sortType)
         {
             try
             {
-                q = q == null ? "" : q.Trim();
+                q = (q == null) ? "" : q.Trim();
+                sortBy = (sortBy == null) ? "date" : sortBy.Trim();
+                sortType = (sortType == null) ? "desc" : sortType.Trim();
 
                 List<MovieInformation> movies = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
@@ -1035,7 +1038,7 @@ namespace MovieAPI.Controllers
                     .Include(movie => movie.MovieType)
                     .Include(movie => movie.MovieGenreInformations)
                     .Where(movie => movie.MovieName.Contains(q)
-                                 || movie.Description.Contains(q)
+                                 || movie.Description.Contains(q)   
                                  || movie.Actor.Contains(q)
                                  || movie.Director.Contains(q)).ToList();
 
@@ -1062,11 +1065,11 @@ namespace MovieAPI.Controllers
                 {
                     if (sortType.ToLower() == "desc")
                     {
-                        movieDTOs.OrderByDescending(movie => movie.PublicationTime);
+                        movieDTOs = movieDTOs.OrderByDescending(movie => movie.PublicationTime).ToList();
                     }
                     else if (sortType.ToLower() == "asc")
                     {
-                        movieDTOs.OrderBy(movie => movie.PublicationTime);
+                        movieDTOs = movieDTOs.OrderBy(movie => movie.PublicationTime).ToList();
                     }
                 }
                 else if (sortBy.ToLower() == "rating")
@@ -1074,11 +1077,11 @@ namespace MovieAPI.Controllers
                     // do nothing...maybe later :D
                     if (sortType.ToLower() == "desc")
                     {
-                        movieDTOs.OrderByDescending(movie => movie.PublicationTime);
+                        movieDTOs = movieDTOs.OrderByDescending(movie => movie.Rating).ToList();
                     }
                     else if (sortType.ToLower() == "asc")
                     {
-                        movieDTOs.OrderBy(movie => movie.PublicationTime);
+                        movieDTOs = movieDTOs.OrderBy(movie => movie.Rating).ToList();
                     }
                 }
 
