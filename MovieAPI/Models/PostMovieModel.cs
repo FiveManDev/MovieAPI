@@ -2,7 +2,7 @@
 {
     public class PostMovieModel
     {
-        public int MovieID { get; set; }
+        public Guid MovieID { get; set; }
         public string MovieName { get; set; }
         public string Description { get; set; }
         public IFormFile Thumbnail { get; set; }
