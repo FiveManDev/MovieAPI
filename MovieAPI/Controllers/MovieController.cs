@@ -816,6 +816,12 @@ namespace MovieAPI.Controllers
                                 MovieID = movieInformation.MovieID
                             });
                         }
+                        _db.AddRange(movieGenreInformation);
+                        var checkValue = _db.SaveChanges();
+                        if (checkValue == 0)
+                        {
+                            throw new Exception("Save data of Movie Genre Information failed");
+                        }
                         logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataSuccess("MovieInformation"));
                         return Ok(new ApiResponse
                         {
@@ -852,7 +858,7 @@ namespace MovieAPI.Controllers
                 var movieInformation = _db.MovieInformations.Find(postMovieModel.MovieID);
                 var thumbnail = movieInformation.Thumbnail;
                 var coverImage = movieInformation.CoverImage;
-                     var movieURL=movieInformation.MovieURL;
+                var movieURL = movieInformation.MovieURL;
                 if (postMovieModel.Thumbnail != null)
                 {
                     thumbnail = await AmazonS3Bucket.UploadFile(s3Client, postMovieModel.Thumbnail, EnumObject.FileType.Image);
@@ -904,6 +910,14 @@ namespace MovieAPI.Controllers
                                 GenreID = genreID,
                                 MovieID = movieInformation.MovieID
                             });
+                        }
+                        var MovieGenreInformations = _db.MovieGenreInformations.Where(mg=>mg.MovieID==movieInformation.MovieID).ToList();
+                        _db.RemoveRange(MovieGenreInformations);
+                        _db.AddRange(movieGenreInformation);
+                        var checkValue = _db.SaveChanges();
+                        if (checkValue == 0)
+                        {
+                            throw new Exception("Save data of Movie Genre Information failed");
                         }
                         logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataSuccess("MovieInformation"));
                         return Ok(new ApiResponse
