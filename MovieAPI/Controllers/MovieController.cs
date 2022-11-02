@@ -623,7 +623,8 @@ namespace MovieAPI.Controllers
                         || movie.Description.Contains(searchText)
                         || movie.Actor.Contains(searchText)
                         || movie.Director.Contains(searchText)
-                        || movie.ReleaseTime.ToString().Contains(searchText))
+                        || movie.ReleaseTime.ToString().Contains(searchText)
+                        && movie.IsVisible == true)
                     .Take(top).ToList();
 
                 if (movies.Count == 0)
@@ -751,11 +752,11 @@ namespace MovieAPI.Controllers
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                if(postMovieModel.Thumbnail==null|| postMovieModel.CoverImage==null || postMovieModel.Movie == null)
+                if (postMovieModel.Thumbnail == null || postMovieModel.CoverImage == null || postMovieModel.Movie == null)
                 {
                     return BadRequest(new ApiResponse
                     {
-                        IsSuccess=false,
+                        IsSuccess = false,
                         Message = "File is null"
                     });
                 }
@@ -913,8 +914,8 @@ namespace MovieAPI.Controllers
                                 MovieID = movieInformation.MovieID
                             });
                         }
-                        var MovieGenreInformations = _db.MovieGenreInformations.Where(mg=>mg.MovieID==movieInformation.MovieID).ToList();
-                        _db.RemoveRange(MovieGenreInformations);
+                        var MovieGenreInformations = _db.MovieGenreInformations.Where(mg => mg.MovieID == movieInformation.MovieID).ToList();
+                        _db.RemoveRange(MovieGenreInformations);    
                         _db.AddRange(movieGenreInformation);
                         var checkValue = _db.SaveChanges();
                         if (checkValue == 0)
@@ -1072,7 +1073,7 @@ namespace MovieAPI.Controllers
             try
             {
                 q = (q == null) ? "" : q.Trim().ToLower();
-    
+
                 List<MovieInformation> movies = _db.MovieInformations
                     .Include(movie => movie.User.Profile)
                     .Include(movie => movie.Classification)
