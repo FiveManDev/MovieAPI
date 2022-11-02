@@ -78,6 +78,7 @@ namespace MovieAPI.Controllers
                 var profile = new Data.Profile
                 {
                     Email = createUserDTO.Email,
+                    Avatar= @"https://moviewebapi.s3.ap-southeast-1.amazonaws.com/Image/Logo.png?AWSAccessKeyId=AKIAUBYK6ZN225WS3AEB&Expires=1698917928&Signature=4LvpFf8IS0a8kOeATaWauwOg2Wo%3D",
                     UserID = userId,
                     ClassID = classID
                 };

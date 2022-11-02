@@ -915,7 +915,8 @@ namespace MovieAPI.Controllers
                             });
                         }
                         var MovieGenreInformations = _db.MovieGenreInformations.Where(mg => mg.MovieID == movieInformation.MovieID).ToList();
-                        _db.RemoveRange(MovieGenreInformations);    
+                        _db.RemoveRange(MovieGenreInformations);  
+                        _db.SaveChanges();  
                         _db.AddRange(movieGenreInformation);
                         var checkValue = _db.SaveChanges();
                         if (checkValue == 0)
