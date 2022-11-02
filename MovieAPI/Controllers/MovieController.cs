@@ -742,7 +742,8 @@ namespace MovieAPI.Controllers
                 });
             }
         }
-
+        [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
+        [DisableRequestSizeLimit]
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> PostMovie([FromForm] PostMovieModel postMovieModel)
@@ -847,7 +848,8 @@ namespace MovieAPI.Controllers
                 });
             }
         }
-
+        [RequestFormLimits(ValueLengthLimit = int.MaxValue, MultipartBodyLengthLimit = int.MaxValue)]
+        [DisableRequestSizeLimit]
         [Authorize(Roles = "Admin")]
         [HttpPut]
         public async Task<IActionResult> UpdateMovie([FromForm] PostMovieModel postMovieModel)
