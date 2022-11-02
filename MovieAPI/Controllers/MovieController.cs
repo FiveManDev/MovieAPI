@@ -797,6 +797,7 @@ namespace MovieAPI.Controllers
                     UserID = postMovieModel.UserID,
                     ClassID = ClassID,
                     MovieTypeID = MovieTypeID,
+                    IsVisible = true
                 };
                 _db.MovieInformations.Add(movieInformation);
                 var returnValue = _db.SaveChanges();
@@ -915,8 +916,8 @@ namespace MovieAPI.Controllers
                             });
                         }
                         var MovieGenreInformations = _db.MovieGenreInformations.Where(mg => mg.MovieID == movieInformation.MovieID).ToList();
-                        _db.RemoveRange(MovieGenreInformations);  
-                        _db.SaveChanges();  
+                        _db.RemoveRange(MovieGenreInformations);
+                        _db.SaveChanges();
                         _db.AddRange(movieGenreInformation);
                         var checkValue = _db.SaveChanges();
                         if (checkValue == 0)
