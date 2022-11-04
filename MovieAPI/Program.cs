@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MovieAPI;
 using MovieAPI.Data.DbConfig;
 using MovieAPI.Services;
 using MovieAPI.Services.SignalR;
@@ -100,7 +101,7 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
-
+builder.Services.AddHostedService<Worker>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

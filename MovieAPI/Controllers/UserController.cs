@@ -427,21 +427,7 @@ namespace MovieAPI.Controllers
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var code = RandomText.RandomByNumberOfCharacters(6, EnumObject.RandomType.Number);
-                var mailName = email.Substring(0, email.IndexOf("@"));
-                var mailModel = new MailModel
-                {
-                    EmailTo = email,
-                    Subject = "Confirm your email address",
-                    Body = $"Welcome {mailName.ToLower()}!" +
-                    $"<br/><br/>" +
-                    $"Thanks for signing up with {AppSettings.MailTile}!" +
-                    $"<br/><b>{code}</b> is your {AppSettings.MailTile} verification." +
-                    $" <br/>" +
-                    $"Thank you," +
-                    $" <br/>" +
-                    $"{AppSettings.MailTile} account group"
-                };
-                MailService.SendMail(mailModel);
+                MailTemplate.ConfirmEmail(email, code);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("No table", 0));
                 return Ok(new ApiResponse
                 {
@@ -467,22 +453,7 @@ namespace MovieAPI.Controllers
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
                 var code = RandomText.RandomByNumberOfCharacters(6, EnumObject.RandomType.Number);
-                var mailName = email.Substring(0, email.IndexOf("@"));
-                var mailModel = new MailModel
-                {
-                    EmailTo = email,
-                    Subject = $"Reset {AppSettings.MailTile} account password",
-                    Body = $"Hello {mailName.ToLower()}!" +
-                    $"<br/><br/>" +
-                    $"Please use this code to reset the password for your {AppSettings.MailTile} account {email}" +
-                    $"<br/>Here is your code: <b>{code}</b>." +
-                    $" <br/>" +
-                    $"Thank you," +
-                    $" <br/>" +
-                    $"{AppSettings.MailTile} account group"
-
-                };
-                MailService.SendMail(mailModel);
+                MailTemplate.VerifyEmail(email, code);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataSuccess("No table", 0));
                 return Ok(new ApiResponse
                 {

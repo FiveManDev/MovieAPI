@@ -1,6 +1,8 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
 using MovieAPI.Models;
+using MovieAPI.Services.Mail;
+using System.Collections.Specialized;
 using static MovieAPI.Models.EnumObject;
 namespace MovieAPI.Services.AWS
 {
@@ -109,6 +111,42 @@ namespace MovieAPI.Services.AWS
                 IsSuccess = true,
                 Message = ""
             };
+        }
+        public static async Task<List<Dictionary<string,string>>> IsBuckerExist(IAmazonS3 s3Client)
+        {
+            try
+            {
+                var bucketName = AppSettings.AWSS3BucketName;
+                var bucketExists = await s3Client.DoesS3BucketExistAsync(bucketName);
+                if (!bucketExists)
+                {
+                   MailTemplate.ServerNotify(bucketName);
+                }
+                var listInfor = new List<Dictionary<string, string>>();
+                ListObjectsRequest listRequest = new ListObjectsRequest
+                {
+                    BucketName = bucketName
+                };
+
+                ListObjectsResponse listResponse;
+                do
+                {
+                    listResponse = await s3Client.ListObjectsAsync(listRequest);
+                    foreach (S3Object obj in listResponse.S3Objects)
+                    {
+                        var resObj= new Dictionary<string,string>();
+                        resObj.Add(obj.Key, obj.Size.ToString());
+                        listInfor.Add(resObj);
+                    }
+
+                    listRequest.Marker = listResponse.NextMarker;
+                } while (listResponse.IsTruncated);
+                return listInfor;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
