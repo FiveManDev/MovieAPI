@@ -26,16 +26,16 @@ namespace MovieAPI
                 logger.LogInformation("Server check at {time}", DateTimeOffset.Now);
                 try
                 {
-                    var listFile = await AmazonS3Bucket.IsBuckerExist(s3Client);
-                    if (listFile == null)
-                    {
-                        throw new Exception("Server currently has no data");
-                    }
+                    // var listFile = await AmazonS3Bucket.IsBuckerExist(s3Client);
+                    // if (listFile == null)
+                    // {
+                    //     throw new Exception("Server currently has no data");
+                    // }
 
-                    foreach (var file in listFile)
-                    {
-                        logger.LogInformation($"File {file.Keys.First()}: {file.Values.First()} Kb");
-                    }
+                    // foreach (var file in listFile)
+                    // {
+                    //     logger.LogInformation($"File {file.Keys.First()}: {file.Values.First()} Kb");
+                    // }
                 }
                 catch (Exception ex)
                 {

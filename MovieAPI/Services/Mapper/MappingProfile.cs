@@ -58,6 +58,10 @@ namespace MovieAPI.Services.Mapper
                     des => des.MovieName,
                     opt => opt.MapFrom(src => src.MovieInformation.MovieName)
                 )
+                .ForMember(
+                    des => des.Avatar,
+                    opt => opt.MapFrom(src => src.User.Profile.Avatar)
+                )
                .ReverseMap();
             // Mapping (Genre, GenreDTO)
             CreateMap<Genre, GenreDTO>()

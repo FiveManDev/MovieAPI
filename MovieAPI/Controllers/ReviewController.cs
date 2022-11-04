@@ -235,25 +235,27 @@ namespace MovieAPI.Controllers
                 {
                     throw new Exception("Save data of review failed");
                 }
-                var Profile = context.Profiles.SingleOrDefault(pro=>pro.UserID==reviewDTO.UserID);
-                var reviewObject = new{
+                var Profile = context.Profiles.SingleOrDefault(pro => pro.UserID == reviewDTO.UserID);
+                var reviewObject = new
+                {
+                    ReviewID= review.ReviewID,
                     Title = review.Title,
                     ReviewContent = review.ReviewContent,
                     Rating = review.Rating,
-                    ReviewTime = review.ReviewTime,
+                    ReviewTime = DateTime.Now,
                     UserID = review.UserID,
                     MovieID = review.MovieID,
                     FirstName = Profile.FirstName,
                     LastName = Profile.LastName,
                     Avatar = Profile.Avatar,
                 };
-                await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("Review","Create", reviewObject);
+                await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("Review", "Create", reviewObject);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataSuccess("Profile"));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
                     Message = "Create new review success",
-                    Data = review.ReviewID
+                    Data = reviewObject
                 });
             }
             catch (Exception ex)
@@ -272,25 +274,31 @@ namespace MovieAPI.Controllers
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                var review = new Review
+                var review = context.Reviews.FirstOrDefault(x => x.ReviewID == reviewDTO.ReviewID);
+                if (review == null)
                 {
-                    ReviewID = reviewDTO.ReviewID,
-                    Title = reviewDTO.Title,
-                    ReviewContent = reviewDTO.ReviewContent,
-                    Rating = reviewDTO.Rating,
-                    ReviewTime = reviewDTO.ReviewTime,
-                    UserID = reviewDTO.UserID,
-                    MovieID = reviewDTO.UserID
-                };
+                    logger.LogInformation(MethodBase.GetCurrentMethod().Name.DeleteDataError("Review", "Review not found"));
+                    return NotFound(new ApiResponse
+                    {
+                        IsSuccess = false,
+                        Message = "Review not found"
+                    });
+                }
+                review.Title = reviewDTO.Title;
+                review.ReviewContent = reviewDTO.ReviewContent;
+                review.Rating = reviewDTO.Rating;
+                review.ReviewTime = DateTime.Now;
+
                 context.Reviews.Update(review);
                 var returnValue = context.SaveChanges();
                 if (returnValue == 0)
                 {
                     throw new Exception("Save data of review failed");
                 }
-                var Profile = context.Profiles.SingleOrDefault(pro => pro.UserID == reviewDTO.UserID);
+                var Profile = context.Profiles.SingleOrDefault(pro => pro.UserID == review.UserID);
                 var reviewObject = new
                 {
+                    ReviewID= review.ReviewID,
                     Title = review.Title,
                     ReviewContent = review.ReviewContent,
                     Rating = review.Rating,
@@ -301,12 +309,13 @@ namespace MovieAPI.Controllers
                     LastName = Profile.LastName,
                     Avatar = Profile.Avatar,
                 };
-                await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("Review","Update", reviewObject);
+                await hub.Clients.Group(review.MovieID.ToString()).SendAsync("Review", "Update", reviewObject);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.PutDataSuccess("Review", 1));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Message = "Update review success"
+                    Message = "Update review success",
+                    Data = reviewObject
                 });
             }
             catch (Exception ex)
@@ -346,7 +355,8 @@ namespace MovieAPI.Controllers
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Message = "Delete review success"
+                    Message = "Delete review success",
+                    Data = ReviewID
                 });
             }
             catch (Exception ex)
