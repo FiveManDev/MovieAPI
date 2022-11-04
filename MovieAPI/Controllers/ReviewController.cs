@@ -247,7 +247,7 @@ namespace MovieAPI.Controllers
                     LastName = Profile.LastName,
                     Avatar = Profile.Avatar,
                 };
-                await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("SendReview", reviewObject);
+                await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("Review","Create", reviewObject);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataSuccess("Profile"));
                 return Ok(new ApiResponse
                 {
@@ -288,7 +288,20 @@ namespace MovieAPI.Controllers
                 {
                     throw new Exception("Save data of review failed");
                 }
-                await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("UpdateReview", review);
+                var Profile = context.Profiles.SingleOrDefault(pro => pro.UserID == reviewDTO.UserID);
+                var reviewObject = new
+                {
+                    Title = review.Title,
+                    ReviewContent = review.ReviewContent,
+                    Rating = review.Rating,
+                    ReviewTime = review.ReviewTime,
+                    UserID = review.UserID,
+                    MovieID = review.MovieID,
+                    FirstName = Profile.FirstName,
+                    LastName = Profile.LastName,
+                    Avatar = Profile.Avatar,
+                };
+                await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("Review","Update", reviewObject);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.PutDataSuccess("Review", 1));
                 return Ok(new ApiResponse
                 {
@@ -328,7 +341,7 @@ namespace MovieAPI.Controllers
                 {
                     throw new Exception("Delete review failed");
                 }
-                await hub.Clients.Group(review.MovieID.ToString()).SendAsync("DeleteReview", ReviewID);
+                await hub.Clients.Group(review.MovieID.ToString()).SendAsync("Review", "Delete", ReviewID);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.DeleteDataSuccess("Review", 1));
                 return Ok(new ApiResponse
                 {
