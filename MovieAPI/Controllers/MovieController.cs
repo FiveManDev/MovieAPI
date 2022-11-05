@@ -886,7 +886,7 @@ namespace MovieAPI.Controllers
                 movieInformation.Language = postMovieModel.Language;
                 movieInformation.Subtitle = postMovieModel.Subtitle;
                 movieInformation.ReleaseTime = postMovieModel.ReleaseTime;
-                movieInformation.PublicationTime = postMovieModel.PublicationTime;
+                movieInformation.PublicationTime = DateTime.Now;
                 movieInformation.CoverImage = coverImage;
                 movieInformation.Age = postMovieModel.Age;
                 movieInformation.MovieURL = movieURL;
