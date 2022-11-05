@@ -249,7 +249,7 @@ namespace MovieAPI.Controllers
                     LastName = Profile.LastName,
                     Avatar = Profile.Avatar,
                 };
-                await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("Review", "Create", reviewObject);
+                await hub.Clients.Group(reviewDTO.MovieID.ToString()).SendAsync("Review", "Create",reviewDTO.UserID, reviewObject);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataSuccess("Profile"));
                 return Ok(new ApiResponse
                 {
@@ -309,7 +309,7 @@ namespace MovieAPI.Controllers
                     LastName = Profile.LastName,
                     Avatar = Profile.Avatar,
                 };
-                await hub.Clients.Group(review.MovieID.ToString()).SendAsync("Review", "Update", reviewObject);
+                await hub.Clients.Group(review.MovieID.ToString()).SendAsync("Review", "Update",reviewDTO.UserID, reviewObject);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.PutDataSuccess("Review", 1));
                 return Ok(new ApiResponse
                 {
@@ -350,7 +350,7 @@ namespace MovieAPI.Controllers
                 {
                     throw new Exception("Delete review failed");
                 }
-                await hub.Clients.Group(review.MovieID.ToString()).SendAsync("Review", "Delete", ReviewID);
+                await hub.Clients.Group(review.MovieID.ToString()).SendAsync("Review", "Delete",review.ReviewID, ReviewID);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.DeleteDataSuccess("Review", 1));
                 return Ok(new ApiResponse
                 {

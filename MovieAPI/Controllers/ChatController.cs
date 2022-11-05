@@ -149,12 +149,13 @@ namespace MovieAPI.Controllers
                 {
                     throw new Exception("Save data to of ticket database failed");
                 }
-                await hub.Clients.Group(chatModel.GroupID.ToString()).SendAsync("SendMessage", chatModel.Message);
+                await hub.Clients.Group(chatModel.GroupID.ToString()).SendAsync("SendMessage","User", chatModel.Message);
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataSuccess("Ticket"));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Message = "Send message success"
+                    Message = "Send message success",
+                    Data= ticket.MessageContent
                 });
             }
             catch (Exception ex)
@@ -190,12 +191,13 @@ namespace MovieAPI.Controllers
                 {
                     throw new Exception("Save data to of ticket database failed");
                 }
-                await hub.Clients.Group(chatModel.GroupID.ToString()).SendAsync("SendMessage", chatModel.Message);
+                await hub.Clients.Group(chatModel.GroupID.ToString()).SendAsync("SendMessage","Admin", chatModel.Message);
                 logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Ticket"));
                 return Ok(new ApiResponse
                 {
                     IsSuccess = true,
-                    Message = "Send message success"
+                    Message = "Send message success",
+                    Data= ticket.MessageContent
                 });
             }
             catch (Exception ex)
