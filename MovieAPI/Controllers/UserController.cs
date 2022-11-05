@@ -42,7 +42,7 @@ namespace MovieAPI.Controllers
             try
             {
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                var userCheck = _db.Users!.FirstOrDefault(user => user.UserName == createUserDTO.UserName);
+                var userCheck = _db.Users.Include(user => user.Profile).FirstOrDefault(user => user.UserName == createUserDTO.UserName || user.Profile.Email == createUserDTO.Email);
                 if (userCheck != null)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.PostDataError("User", "Account already exists"));
