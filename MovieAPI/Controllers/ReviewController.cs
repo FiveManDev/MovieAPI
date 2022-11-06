@@ -18,7 +18,6 @@ namespace MovieAPI.Controllers
     [Route("api/v{version:apiVersion}/[controller]/[Action]")]
     [ApiController]
     [ApiVersion("1")]
-    [Authorize]
     [UserBanned]
     public class ReviewController : ControllerBase
     {
@@ -214,6 +213,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> CreateReview([FromBody] PostReviewModel reviewDTO)
         {
@@ -225,7 +225,7 @@ namespace MovieAPI.Controllers
                     Title = reviewDTO.Title,
                     ReviewContent = reviewDTO.ReviewContent,
                     Rating = reviewDTO.Rating,
-                    ReviewTime = reviewDTO.ReviewTime,
+                    ReviewTime = DateTime.Now,
                     UserID = reviewDTO.UserID,
                     MovieID = reviewDTO.MovieID
                 };
@@ -268,6 +268,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+        [Authorize]
         [HttpPut]
         public async Task<IActionResult> UpdateReview([FromBody] ReviewDTO reviewDTO)
         {
@@ -328,6 +329,7 @@ namespace MovieAPI.Controllers
                 });
             }
         }
+        [Authorize]
         [HttpDelete]
         public async Task<IActionResult> DeleteReview(Guid ReviewID)
         {
