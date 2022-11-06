@@ -18,7 +18,6 @@ namespace MovieAPI.Controllers
     [Route("api/v{version:apiVersion}/[controller]/[Action]")]
     [ApiController]
     [ApiVersion("1")]
-    [UserBanned]
     public class ReviewController : ControllerBase
     {
         private readonly MovieAPIDbContext context;
@@ -214,6 +213,7 @@ namespace MovieAPI.Controllers
             }
         }
         [Authorize]
+        [UserBanned]
         [HttpPost]
         public async Task<IActionResult> CreateReview([FromBody] PostReviewModel reviewDTO)
         {
@@ -269,6 +269,7 @@ namespace MovieAPI.Controllers
             }
         }
         [Authorize]
+        [UserBanned]
         [HttpPut]
         public async Task<IActionResult> UpdateReview([FromBody] ReviewDTO reviewDTO)
         {
@@ -330,6 +331,7 @@ namespace MovieAPI.Controllers
             }
         }
         [Authorize]
+        [UserBanned]
         [HttpDelete]
         public async Task<IActionResult> DeleteReview(Guid ReviewID)
         {
