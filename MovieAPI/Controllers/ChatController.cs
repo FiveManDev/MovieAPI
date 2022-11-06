@@ -191,7 +191,8 @@ namespace MovieAPI.Controllers
                 {
                     throw new Exception("Save data to of ticket database failed");
                 }
-                await hub.Clients.Group(chatModel.GroupID.ToString()).SendAsync("SendMessage","Admin",ticket.SenderId, chatModel.Message);
+                var image = context.Profiles.SingleOrDefault(pro => pro.UserID == ticket.SenderId).Avatar;
+                await hub.Clients.Group(chatModel.GroupID.ToString()).SendAsync("SendMessage","Admin",ticket.SenderId, chatModel.Message, image);
                 logger.LogInformation(MethodBase.GetCurrentMethod()!.Name.PostDataSuccess("Ticket"));
                 return Ok(new ApiResponse
                 {
