@@ -467,6 +467,7 @@ namespace MovieAPI.Controllers
                         movieDTO = calculateRating(movieDTO);
                         movieDTO = getGenreName(movieDTO);
                     });
+                    moviesDTOs = moviesDTOs.Where(m => m.IsVisible == true).ToList();
                     return Ok(new ApiResponse
                     {
                         IsSuccess = true,
@@ -475,7 +476,7 @@ namespace MovieAPI.Controllers
                     });
                 }
                 logger.LogInformation(MethodBase.GetCurrentMethod().Name.MethodStart());
-                var listTopRating = _db.Reviews.Select(r => r.MovieID).Distinct().ToList();
+                var listTopRating = _db.MovieInformations.Select(r => r.MovieID).ToList();
                 var listmovieID = new List<MovieDTO>();
                 foreach (var item in listTopRating)
                 {
@@ -485,7 +486,7 @@ namespace MovieAPI.Controllers
                 }
 
                 var listID = listmovieID.Where(movieDTO => movieDTO.Rating >= ratingMin
-                 && movieDTO.Rating <= ratingMax).ToList();
+                 || movieDTO.Rating <= ratingMax).ToList();
                 if (listID.Count == 0)
                 {
                     logger.LogInformation(MethodBase.GetCurrentMethod().Name.GetDataError("MovieInformations", "Movies Not Found"));
@@ -503,17 +504,24 @@ namespace MovieAPI.Controllers
                     .Include(m => m.Classification)
                     .Include(m => m.MovieType)
                     .Include(m => m.MovieGenreInformations)
-                    .SingleOrDefault(m => m.MovieID == dTO.MovieID
-                    && m.Quality.Equals(quality)
-                    && m.ReleaseTime.Year >= releaseTimeMin
-                    && m.ReleaseTime.Year <= releaseTimeMax
-                    );
-                    if (movie == null)
+                    .Where(m => m.MovieID == dTO.MovieID).ToList();
+
+                    if (movie.Count == 0)
                     {
                         continue;
                     }
-                    var check = movie.MovieGenreInformations.Any(mg => mg.GenreID == genreID);
-                    if (check) movies.Add(movie);
+                    foreach(var item in movie)
+                    {
+                        if (item.Quality.Equals(quality))
+                        {
+                            if(item.ReleaseTime.Year >= releaseTimeMin || item.ReleaseTime.Year <= releaseTimeMax)
+                            {
+                                var check = item.MovieGenreInformations.Any(mg => mg.GenreID == genreID);
+                                if (check) movies.Add(item);
+                            }
+                        }
+                    }
+                    
                 }
                 if (movies.Count == 0)
                 {
@@ -624,9 +632,9 @@ namespace MovieAPI.Controllers
                         || movie.Actor.Contains(searchText)
                         || movie.Director.Contains(searchText)
                         || movie.ReleaseTime.ToString().Contains(searchText)
-                        && movie.IsVisible == true)
+                       )
                     .Take(top).ToList();
-
+                movies = movies.Where(m=>m.IsVisible==true).ToList();
                 if (movies.Count == 0)
                 {
                     logger.LogError(MethodBase.GetCurrentMethod()!.Name.GetDataError("MovieInformation", "Movies Not Found"));
@@ -636,7 +644,7 @@ namespace MovieAPI.Controllers
                         Message = "Movies Not Found"
                     });
                 }
-
+               
                 var movieDTOs = _mapper.Map<List<MovieInformation>, List<MovieDTO>>(movies);
                 movieDTOs.ForEach(movieDTO =>
                 {
